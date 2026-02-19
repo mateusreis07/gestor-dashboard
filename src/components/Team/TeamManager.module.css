@@ -1,0 +1,208 @@
+.container {
+    padding: 32px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 600px;
+    margin: 40px auto;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #1f2937;
+    letter-spacing: -0.02em;
+}
+
+.teamList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Custom Scrollbar */
+.teamList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.teamList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.teamList::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb;
+    border-radius: 20px;
+}
+
+.teamItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.teamItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+    border-color: #e5e7eb;
+}
+
+.teamItem.active {
+    border-color: #1890ff;
+    background-color: #f0f9ff;
+    box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.2);
+}
+
+.createForm {
+    background: #f9fafb;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    outline: none;
+    font-size: 0.95rem;
+    color: #374151;
+    transition: all 0.2s;
+    background: white;
+}
+
+.input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
+.input::placeholder {
+    color: #9ca3af;
+}
+
+.button {
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.buttonSecondary {
+    background: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.buttonSecondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.deleteButton {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.deleteButton:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.editButton {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editButton:hover {
+    color: #1890ff;
+    background: #eff6ff;
+}
+
+.teamItem.editing {
+    border-color: #1890ff;
+    background: #f0f9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15);
+    cursor: default;
+}
+
+.teamItem.editing:hover {
+    transform: none;
+}
+
+.editForm {
+    width: 100%;
+}

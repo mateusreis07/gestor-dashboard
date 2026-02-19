@@ -1,0 +1,109 @@
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-card);
+    width: 100%;
+    margin: 0 auto;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.chartContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 24px;
+    margin-top: 20px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* More spacing */
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.legendItem:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.legendItem.inactive {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.legendColor {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    /* Softer, slightly larger */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.legendItem:hover .legendColor {
+    transform: scale(1.2);
+}
+
+.legendText {
+    font-size: 0.875rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.totalContainer {
+    margin-top: 16px;
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    width: 100%;
+    transition: opacity 0.3s ease;
+}
+
+.totalValue {
+    display: block;
+    font-size: 2rem;
+    /* Larger impact */
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.totalLabel {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-top: 8px;
+}

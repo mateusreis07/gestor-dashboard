@@ -1,0 +1,91 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #f0f2f5 0%, #e6f7ff 100%);
+    padding: 20px;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 8px;
+    letter-spacing: -0.05em;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin-bottom: 48px;
+}
+
+.cardContainer {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+}
+
+.managerCard:hover {
+    border-color: #1890ff;
+}
+
+.teamCard:hover {
+    border-color: #52c41a;
+}
+
+.iconWrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    transition: background 0.3s;
+}
+
+.managerCard:hover .iconWrapper {
+    background: #e6f7ff;
+}
+
+.teamCard:hover .iconWrapper {
+    background: #f6ffed;
+}
+
+.roleTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+.roleDesc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    line-height: 1.5;
+}
