@@ -6,6 +6,8 @@ import { OriginChart } from '../components/Dashboard/OriginChart';
 import { CategoryChart } from '../components/Dashboard/CategoryChart';
 import { RequesterChart } from '../components/Dashboard/RequesterChart';
 import { HistoryChart } from '../components/Dashboard/HistoryChart';
+import { StatusChart } from '../components/Dashboard/StatusChart';
+import { FuncionalidadeChart } from '../components/Dashboard/FuncionalidadeChart';
 import {
     parseCSV,
     getOriginStats,
@@ -15,9 +17,10 @@ import {
     filterTicketsByMonth,
     parseTicketDate
 } from '../utils/csvParser';
-import { loadTeams, loadTeamTickets, saveTeamTickets, clearTeamTickets } from '../utils/storage';
-import type { Ticket, Team } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Users, Upload, Calendar, Trash2 } from 'lucide-react';
+import { parseXlsx, getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
+import { loadTeams, loadTeamTickets, saveTeamTickets, clearTeamTickets, loadTeamChamados, saveTeamChamados, clearTeamChamados } from '../utils/storage';
+import type { Ticket, Team, Chamado } from '../utils/types';
+import { ArrowLeft, LogOut, LayoutDashboard, Users, Upload, Calendar, Trash2, FileSpreadsheet, ClipboardList } from 'lucide-react';
 
 const months = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -31,6 +34,8 @@ export function TeamDashboard() {
 
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [chamados, setChamados] = useState<Chamado[]>([]);
+    const [chamadosMonth, setChamadosMonth] = useState<number | null>(null);
     const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -55,6 +60,11 @@ export function TeamDashboard() {
             setCurrentTeam(team);
             const teamTickets = loadTeamTickets(team.id);
             setTickets(teamTickets);
+            const chamadosData = loadTeamChamados(team.id);
+            if (chamadosData) {
+                setChamados(chamadosData.chamados);
+                setChamadosMonth(chamadosData.month);
+            }
         } else {
             if (role === 'manager') {
                 navigate('/app/overview');
@@ -81,6 +91,11 @@ export function TeamDashboard() {
     const categoryData = useMemo(() => getCategoryStats(filteredTickets), [filteredTickets]);
     const requesterData = useMemo(() => getRequesterStats(filteredTickets), [filteredTickets]);
     const historyData = useMemo(() => getHistoryStats(tickets), [tickets]);
+
+    // --- Chamados XLSX Data (only visible for the import month) ---
+    const showChamados = chamados.length > 0 && (selectedMonth === null || selectedMonth === chamadosMonth);
+    const statusData = useMemo(() => getStatusStats(chamados), [chamados]);
+    const funcData = useMemo(() => getFuncionalidadeStats(chamados), [chamados]);
 
     // --- Handlers ---
     const handleFileSelect = async (file: File) => {
@@ -125,13 +140,38 @@ export function TeamDashboard() {
     const handleClearData = () => {
         if (currentTeam && confirm(`Limpar todos os dados do time ${currentTeam.name}?`)) {
             clearTeamTickets(currentTeam.id);
+            clearTeamChamados(currentTeam.id);
             setTickets([]);
+            setChamados([]);
+            setChamadosMonth(null);
             setSelectedMonth(null);
         }
     };
 
     const handleImportClick = () => {
         document.getElementById('hidden-file-input')?.click();
+    };
+
+    const handleXlsxImportClick = () => {
+        document.getElementById('hidden-xlsx-input')?.click();
+    };
+
+    const handleXlsxFileSelect = async (file: File) => {
+        if (role !== 'team' || !currentTeam) return;
+        setLoading(true);
+        try {
+            const newChamados = await parseXlsx(file);
+            // Use selected month if set, otherwise current month
+            const importMonth = selectedMonth !== null ? selectedMonth : new Date().getMonth();
+            setChamados(newChamados);
+            setChamadosMonth(importMonth);
+            saveTeamChamados(currentTeam.id, importMonth, newChamados);
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao processar arquivo XLSX');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleBack = () => {
@@ -224,7 +264,6 @@ export function TeamDashboard() {
                         <>
                             <button
                                 onClick={handleImportClick}
-                                className="action-button"
                                 style={{
                                     background: 'white', color: '#374151', border: '1px solid #e5e7eb',
                                     padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem',
@@ -234,6 +273,17 @@ export function TeamDashboard() {
                                 <Upload size={16} />
                                 <span>Importar CSV</span>
                             </button>
+                            <button
+                                onClick={handleXlsxImportClick}
+                                style={{
+                                    background: 'white', color: '#374151', border: '1px solid #e5e7eb',
+                                    padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem',
+                                    fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                                }}
+                            >
+                                <FileSpreadsheet size={16} />
+                                <span>Importar XLSX</span>
+                            </button>
                             <input
                                 id="hidden-file-input"
                                 type="file"
@@ -241,6 +291,18 @@ export function TeamDashboard() {
                                 onChange={(e) => {
                                     if (e.target.files && e.target.files[0]) {
                                         handleFileSelect(e.target.files[0]);
+                                        e.target.value = '';
+                                    }
+                                }}
+                                style={{ display: 'none' }}
+                            />
+                            <input
+                                id="hidden-xlsx-input"
+                                type="file"
+                                accept=".xlsx,.xls"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        handleXlsxFileSelect(e.target.files[0]);
                                         e.target.value = '';
                                     }
                                 }}
@@ -302,28 +364,52 @@ export function TeamDashboard() {
                     </div>
                 )}
 
-                {/* DASHBOARD CHARTS */}
+                {/* DASHBOARD CHARTS - CSV */}
                 {tickets.length > 0 && (
                     <div className="dashboard-grid">
                         <OriginChart data={originData} />
                         <CategoryChart data={categoryData} />
                         <RequesterChart data={requesterData} />
                         <HistoryChart data={historyData} />
+                    </div>
+                )}
 
-                        {role === 'team' && (
-                            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                                <button
-                                    onClick={handleClearData}
-                                    style={{
-                                        background: 'transparent', border: 'none', color: '#ef4444',
-                                        cursor: 'pointer', fontSize: '0.8rem', display: 'flex',
-                                        alignItems: 'center', gap: '4px', opacity: 0.7
-                                    }}
-                                >
-                                    <Trash2 size={14} /> Limpar dados de {currentTeam.name}
-                                </button>
-                            </div>
-                        )}
+                {/* DASHBOARD CHARTS - XLSX Chamados */}
+                {showChamados && (
+                    <>
+                        <div style={{
+                            marginTop: tickets.length > 0 ? '32px' : '0',
+                            marginBottom: '16px',
+                            display: 'flex', alignItems: 'center', gap: '10px'
+                        }}>
+                            <ClipboardList size={20} color="#2563eb" />
+                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                Painel de Chamados JIRA
+                            </h2>
+                            <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                {chamados.length} registros
+                            </span>
+                        </div>
+                        <div className="dashboard-grid">
+                            <StatusChart data={statusData} total={chamados.length} />
+                            <FuncionalidadeChart data={funcData} />
+                        </div>
+                    </>
+                )}
+
+                {/* Clear data button */}
+                {(tickets.length > 0 || chamados.length > 0) && role === 'team' && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+                        <button
+                            onClick={handleClearData}
+                            style={{
+                                background: 'transparent', border: 'none', color: '#ef4444',
+                                cursor: 'pointer', fontSize: '0.8rem', display: 'flex',
+                                alignItems: 'center', gap: '4px', opacity: 0.7
+                            }}
+                        >
+                            <Trash2 size={14} /> Limpar todos os dados de {currentTeam.name}
+                        </button>
                     </div>
                 )}
             </main>

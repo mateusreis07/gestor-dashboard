@@ -1,4 +1,4 @@
-import type { Ticket, Team, Manager } from './types';
+import type { Ticket, Team, Manager, Chamado } from './types';
 
 const TEAMS_KEY = 'gestor_dashboard_teams';
 const TICKETS_KEY_PREFIX = 'gestor_dashboard_tickets_';
@@ -112,4 +112,43 @@ export const saveTeamTickets = (teamId: string, tickets: Ticket[]) => {
 
 export const clearTeamTickets = (teamId: string) => {
     localStorage.removeItem(`${TICKETS_KEY_PREFIX}${teamId}`);
+};
+
+// --- Chamados XLSX Management (Per Team) ---
+
+const CHAMADOS_KEY_PREFIX = 'gestor_dashboard_chamados_';
+
+export interface ChamadosData {
+    month: number; // 0-11 (Jan-Dec)
+    chamados: Chamado[];
+}
+
+export const loadTeamChamados = (teamId: string): ChamadosData | null => {
+    try {
+        const raw = localStorage.getItem(`${CHAMADOS_KEY_PREFIX}${teamId}`);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        // Handle legacy format (plain array)
+        if (Array.isArray(parsed)) {
+            return { month: new Date().getMonth(), chamados: parsed };
+        }
+        return parsed;
+    } catch (error) {
+        console.error(`Failed to load chamados for team ${teamId}`, error);
+        return null;
+    }
+};
+
+export const saveTeamChamados = (teamId: string, month: number, chamados: Chamado[]) => {
+    try {
+        const data: ChamadosData = { month, chamados };
+        localStorage.setItem(`${CHAMADOS_KEY_PREFIX}${teamId}`, JSON.stringify(data));
+    } catch (error) {
+        console.error(`Failed to save chamados for team ${teamId}`, error);
+        alert('Erro: Não foi possível salvar os dados (Espaço insuficiente no navegador).');
+    }
+};
+
+export const clearTeamChamados = (teamId: string) => {
+    localStorage.removeItem(`${CHAMADOS_KEY_PREFIX}${teamId}`);
 };

@@ -46,3 +46,28 @@ export interface Manager {
   email: string;
   password: string;
 }
+
+// --- XLSX Chamados (new spreadsheet) ---
+
+export interface Chamado {
+  numeroChamado: string;
+  resumo: string;
+  criado: string;
+  fimDoPrazo: string;
+  prazoAjustado: string;
+  statusChamado: string;
+  relator: string;
+  modulo: string;
+  funcionalidade: string;
+}
+
+export interface StatusData {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface FuncionalidadeData {
+  name: string;
+  value: number;
+}
