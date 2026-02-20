@@ -32,9 +32,15 @@ export function ManagerHub() {
         try {
             setLoading(true);
             const data = await managerTeamsService.listTeams();
-            setTeams(data);
+            if (Array.isArray(data)) {
+                setTeams(data);
+            } else {
+                console.error('Dados de times inválidos (esperado array):', data);
+                setTeams([]);
+            }
         } catch (err) {
             console.error('Erro ao carregar times:', err);
+            setTeams([]);
         } finally {
             setLoading(false);
         }
