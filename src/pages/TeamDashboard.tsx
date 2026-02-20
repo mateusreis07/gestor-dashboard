@@ -38,7 +38,7 @@ export function TeamDashboard() {
 
 
     // Manual Stats State
-    const [manualStats, setManualStats] = useState({ satisfaction: '0', manuals: '0', projetos: '0', treinamentos: '0' });
+    const [manualStats, setManualStats] = useState({ satisfaction: '0', manuals: '0', projetos: '', treinamentos: '' });
     const [isEditingStats, setIsEditingStats] = useState(false);
 
     // Month Based View State
@@ -87,11 +87,11 @@ export function TeamDashboard() {
                     setManualStats({
                         satisfaction: data.manualStats.satisfaction || '0',
                         manuals: data.manualStats.manuals || '0',
-                        projetos: data.manualStats.projetos || '0',
-                        treinamentos: data.manualStats.treinamentos || '0'
+                        projetos: data.manualStats.projetos || '',
+                        treinamentos: data.manualStats.treinamentos || ''
                     });
                 } else {
-                    setManualStats({ satisfaction: '0', manuals: '0', projetos: '0', treinamentos: '0' });
+                    setManualStats({ satisfaction: '0', manuals: '0', projetos: '', treinamentos: '' });
                 }
             }).catch(err => {
                 console.error('API getDashboard failed, using localStorage fallback:', err);
@@ -104,8 +104,8 @@ export function TeamDashboard() {
                         setManualStats({
                             satisfaction: localData.manualStats.satisfaction || '0',
                             manuals: localData.manualStats.manuals || '0',
-                            projetos: (localData.manualStats as any).projetos || '0',
-                            treinamentos: (localData.manualStats as any).treinamentos || '0'
+                            projetos: (localData.manualStats as any).projetos || '',
+                            treinamentos: (localData.manualStats as any).treinamentos || ''
                         });
                     }
                 }
@@ -130,7 +130,7 @@ export function TeamDashboard() {
             } else {
                 setTickets([]);
                 setChamados([]);
-                setManualStats({ satisfaction: '0', manuals: '0', projetos: '0', treinamentos: '0' });
+                setManualStats({ satisfaction: '0', manuals: '0', projetos: '', treinamentos: '' });
             }
             setIsFetchingData(false);
         }
@@ -638,11 +638,12 @@ export function TeamDashboard() {
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
                                     Projetos
                                 </label>
-                                <input
-                                    type="number" step="1" min="0"
+                                <textarea
+                                    rows={3}
+                                    placeholder="Liste os projetos..."
                                     value={manualStats.projetos}
                                     onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
                                 />
                             </div>
 
@@ -650,11 +651,12 @@ export function TeamDashboard() {
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
                                     Treinamentos Ministrados
                                 </label>
-                                <input
-                                    type="number" step="1" min="0"
+                                <textarea
+                                    rows={3}
+                                    placeholder="Liste os treinamentos..."
                                     value={manualStats.treinamentos}
                                     onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
                                 />
                             </div>
 
@@ -804,19 +806,24 @@ export function TeamDashboard() {
                                             <Edit2 size={16} />
                                         </button>
                                     )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Projetos</h3>
-                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                                {manualStats.projetos || '0'}
-                                            </div>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Projetos no Mês</h3>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
                                             <FolderKanban size={24} color="white" />
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                        Entregues no Mês
+                                    <div style={{
+                                        flex: 1,
+                                        fontSize: '0.95rem',
+                                        fontWeight: 500,
+                                        lineHeight: 1.5,
+                                        whiteSpace: 'pre-wrap',
+                                        maxHeight: '120px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {manualStats.projetos || 'Nenhum projeto informado.'}
                                     </div>
                                 </div>
 
@@ -837,19 +844,24 @@ export function TeamDashboard() {
                                             <Edit2 size={16} />
                                         </button>
                                     )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Treinamentos</h3>
-                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                                {manualStats.treinamentos || '0'}
-                                            </div>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Treinamentos Ministrados</h3>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
                                             <GraduationCap size={24} color="white" />
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                        Ministrados no Mês
+                                    <div style={{
+                                        flex: 1,
+                                        fontSize: '0.95rem',
+                                        fontWeight: 500,
+                                        lineHeight: 1.5,
+                                        whiteSpace: 'pre-wrap',
+                                        maxHeight: '120px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {manualStats.treinamentos || 'Nenhum treinamento informado.'}
                                     </div>
                                 </div>
                             </div>
