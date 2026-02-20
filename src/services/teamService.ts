@@ -54,6 +54,19 @@ export const teamService = {
     const response = await api.delete(`/teams/${teamId}/data?month=${month}`);
     return response.data;
   },
+
+  async getYearlyIndicators(teamId: string, year: string) {
+    const response = await api.get(`/teams/${teamId}/yearly-indicators?year=${year}`);
+    return response.data;
+  },
+
+  async saveYearlyIndicators(teamId: string, year: string, data: any[]) {
+    const response = await api.post(`/teams/${teamId}/yearly-indicators`, {
+      year,
+      data
+    });
+    return response.data;
+  }
 };
 
 // Serviço de gerenciamento de times (apenas para gestor)

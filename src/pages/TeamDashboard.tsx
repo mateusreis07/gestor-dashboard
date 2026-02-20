@@ -20,7 +20,8 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, FolderKanban, GraduationCap } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, FolderKanban, GraduationCap, BarChart2 } from 'lucide-react';
+import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 
 export function TeamDashboard() {
     const { teamId } = useParams<{ teamId: string }>();
@@ -44,6 +45,55 @@ export function TeamDashboard() {
     // Month Based View State
     const [currentViewMonth, setCurrentViewMonth] = useState<string>('');
     const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+
+    // Tabs & Indicators State
+    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores'>('geral');
+    const [yearlyIndicators, setYearlyIndicators] = useState<any[]>([]);
+    const [indicatorsYear, setIndicatorsYear] = useState<string>(new Date().getFullYear().toString());
+    const [isEditingIndicators, setIsEditingIndicators] = useState(false);
+    const [indicatorsForm, setIndicatorsForm] = useState(
+        Array.from({ length: 12 }, (_, i) => ({
+            month: `${indicatorsYear}-${String(i + 1).padStart(2, '0')}`,
+            peticionamento: '',
+            extrajudiciais: '',
+            documentos: '',
+            movimentos: '',
+        }))
+    );
+
+    // Fetch Yearly Indicators
+    useEffect(() => {
+        if (!currentTeam || activeTab !== 'indicadores') return;
+
+        teamService.getYearlyIndicators(currentTeam.id, indicatorsYear).then((data) => {
+            // Map the data into an array of 12 months for the chart & form
+            const monthsData = Array.from({ length: 12 }, (_, i) => {
+                const monthParam = `${indicatorsYear}-${String(i + 1).padStart(2, '0')}`;
+                const existing = data.find((d: any) => d.month === monthParam);
+                return {
+                    month: monthParam,
+                    peticionamento: existing?.peticionamento || '',
+                    extrajudiciais: existing?.extrajudiciais || '',
+                    documentos: existing?.documentos || '',
+                    movimentos: existing?.movimentos || '',
+                };
+            });
+            setYearlyIndicators(monthsData);
+            setIndicatorsForm(monthsData);
+        }).catch(err => console.error('Failed to load yearly indicators', err));
+    }, [currentTeam, activeTab, indicatorsYear]);
+
+    const handleSaveIndicators = async () => {
+        if (!currentTeam) return;
+        try {
+            await teamService.saveYearlyIndicators(currentTeam.id, indicatorsYear, indicatorsForm);
+            setIsEditingIndicators(false);
+            setYearlyIndicators([...indicatorsForm]);
+        } catch (error) {
+            console.error('Failed to save indicators', error);
+            alert('Erro ao salvar indicadores. Tente novamente.');
+        }
+    };
 
     // Load Available Months on Mount
     useEffect(() => {
@@ -490,352 +540,57 @@ export function TeamDashboard() {
             </header>
 
             <main className="dashboard-content" style={{ marginTop: '0px' }}> {/* Add margin top */}
+                {/* TABS HEADERS */}
+                <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px' }}>
+                    <button
+                        onClick={() => setActiveTab('geral')}
+                        style={{ background: 'none', border: 'none', borderBottom: activeTab === 'geral' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'geral' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'geral' ? 1 : 0.6 }}>
+                        <LayoutDashboard size={20} />
+                        Visão Geral
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('indicadores')}
+                        style={{ background: 'none', border: 'none', borderBottom: activeTab === 'indicadores' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'indicadores' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'indicadores' ? 1 : 0.6 }}>
+                        <BarChart2 size={20} />
+                        Indicadores
+                    </button>
+                </div>
 
-                {/* KPI Cards Row */}
-                {!isLoading && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                {activeTab === 'geral' ? (
+                    <>
 
-                        {/* Card 1: Total Tickets (Violet) */}
-                        <div style={{
-                            background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-                            borderRadius: '16px', padding: '24px', color: 'white',
-                            boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
-                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
-                                    <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                        {filteredTickets.length}
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                    <TicketIcon size={24} color="white" />
-                                </div>
-                            </div>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                Status: Filtrado por data
-                            </div>
-                        </div>
-
-                        {/* Card 2: Satisfaction (Pink) */}
-                        <div style={{
-                            background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
-                            borderRadius: '16px', padding: '24px', color: 'white',
-                            boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
-                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                            position: 'relative'
-                        }}>
-                            {role === 'TEAM' && (
-                                <button
-                                    onClick={() => setIsEditingStats(true)}
-                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                    title="Editar dados manuais"
-                                >
-                                    <Edit2 size={16} />
-                                </button>
-                            )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
-                                </div>
-                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                    <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
-                                </div>
-                            </div>
-
-                            <div style={{ marginTop: '16px' }}>
-                                <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            size={24}
-                                            fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
-                                            color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
-                                        />
-                                    ))}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                    <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
-                                        {manualStats.satisfaction}
-                                    </span>
-                                    <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card 3: Manuals Sent (Orange) */}
-                        <div style={{
-                            background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
-                            borderRadius: '16px', padding: '24px', color: 'white',
-                            boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
-                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                            position: 'relative'
-                        }}>
-                            {role === 'TEAM' && (
-                                <button
-                                    onClick={() => setIsEditingStats(true)}
-                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                    title="Editar dados manuais"
-                                >
-                                    <Edit2 size={16} />
-                                </button>
-                            )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
-                                    <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                        {manualStats.manuals}
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                    <Share2 size={24} color="white" />
-                                </div>
-                            </div>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                SAJ Ajuda
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Manual Stats Edit Modal */}
-                {isEditingStats && (
-                    <div style={{
-                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
-                    }}>
-                        <div style={{
-                            background: 'white', padding: '32px', borderRadius: '24px',
-                            width: '100%', maxWidth: '600px', maxHeight: '90vh',
-                            overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-                        }}>
-                            <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Atualizar Métricas</h3>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                    Índice de Satisfação (0-5)
-                                </label>
-                                <input
-                                    type="number" step="0.01" max="5" min="0"
-                                    value={manualStats.satisfaction}
-                                    onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                    Manuais Enviados
-                                </label>
-                                <input
-                                    type="number" step="1" min="0"
-                                    value={manualStats.manuals}
-                                    onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                    Projetos
-                                </label>
-                                <textarea
-                                    rows={5}
-                                    placeholder="Liste os projetos..."
-                                    value={manualStats.projetos}
-                                    onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                    Treinamentos Ministrados
-                                </label>
-                                <textarea
-                                    rows={5}
-                                    placeholder="Liste os treinamentos..."
-                                    value={manualStats.treinamentos}
-                                    onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                <button
-                                    onClick={() => setIsEditingStats(false)}
-                                    style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleSaveStats}
-                                    style={{
-                                        background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px',
-                                        padding: '8px 24px', fontWeight: 600, cursor: 'pointer',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                                    }}
-                                >
-                                    Salvar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-                }
-
-                {/* SKELETON LOADER */}
-                {
-                    isLoading && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                            </div>
-                            <div className="dashboard-grid">
-                                <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
-                                <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
-                            </div>
-                        </div>
-                    )
-                }
-
-                {/* EMPTY STATE */}
-                {
-                    !isLoading && tickets.length === 0 && chamados.length === 0 && (
-                        <div className="upload-section">
-                            {role === 'TEAM' ? (
-                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                    <h3>Nenhum dado importado ainda.</h3>
-                                    <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
-                                </div>
-                            ) : (
-                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                    <h3>Aguardando dados...</h3>
-                                    <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
-                                </div>
-                            )}
-                        </div>
-                    )
-                }
-
-
-
-                {/* DASHBOARD CHARTS - CSV */}
-                {
-                    !isLoading && tickets.length > 0 && (
-                        <>
-                            <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <ClipboardList size={20} color="#2563eb" />
-                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                    Painel de chamados
-                                </h2>
-                            </div>
-                            <div className="dashboard-grid">
-                                <OriginChart data={originData} />
-                                <CategoryChart data={categoryData} />
-                            </div>
-
-                            <div className="dashboard-grid">
-                                <RequesterChart data={requesterData} />
-                                <HistoryChart data={historyData} />
-                            </div>
-                        </>
-                    )
-                }
-
-                {/* DASHBOARD CHARTS - XLSX Chamados */}
-                {
-                    !isLoading && showChamados && (
-                        <>
-                            <div style={{
-                                marginTop: tickets.length > 0 ? '32px' : '0',
-                                marginBottom: '16px',
-                                display: 'flex', alignItems: 'center', gap: '10px'
-                            }}>
-                                <ClipboardList size={20} color="#2563eb" />
-                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                    Painel de Chamados JIRA
-                                </h2>
-                                <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
-                                    {chamados.length} registros
-                                </span>
-                            </div>
-                            <div className="dashboard-grid">
-                                <StatusChart
-                                    data={statusData}
-                                    total={chamados.length}
-                                    onSliceClick={handleStatusClick}
-                                />
-                                <FuncionalidadeChart data={funcData} />
-                            </div>
-                        </>
-                    )
-                }
-
-                {/* NEW PANEL - PROJETOS & TREINAMENTOS */}
-                {
-                    !isLoading && (
-                        <>
-                            <div style={{
-                                marginTop: '32px',
-                                marginBottom: '16px',
-                                display: 'flex', alignItems: 'center', gap: '10px'
-                            }}>
-                                <ClipboardList size={20} color="#2563eb" />
-                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                    Entregas do Período
-                                </h2>
-                            </div>
-
+                        {/* KPI Cards Row */}
+                        {!isLoading && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                                {/* Card: Projetos (Teal) */}
+
+                                {/* Card 1: Total Tickets (Violet) */}
                                 <div style={{
-                                    background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
                                     borderRadius: '16px', padding: '24px', color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                                    position: 'relative'
+                                    boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
                                 }}>
-                                    {role === 'TEAM' && (
-                                        <button
-                                            onClick={() => setIsEditingStats(true)}
-                                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                            title="Editar dados manuais"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                    )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Projetos no Mês</h3>
+                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
+                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                                {filteredTickets.length}
+                                            </div>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <FolderKanban size={24} color="white" />
+                                            <TicketIcon size={24} color="white" />
                                         </div>
                                     </div>
-                                    <div style={{
-                                        flex: 1,
-                                        fontSize: '0.95rem',
-                                        fontWeight: 500,
-                                        lineHeight: 1.5,
-                                        whiteSpace: 'pre-wrap',
-                                        maxHeight: '120px',
-                                        overflowY: 'auto'
-                                    }}>
-                                        {manualStats.projetos || 'Nenhum projeto informado.'}
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                        Status: Filtrado por data
                                     </div>
                                 </div>
 
-                                {/* Card: Treinamentos (Indigo) */}
+                                {/* Card 2: Satisfaction (Pink) */}
                                 <div style={{
-                                    background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                                    background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
                                     borderRadius: '16px', padding: '24px', color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
+                                    boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
                                     display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
                                     position: 'relative'
                                 }}>
@@ -848,43 +603,520 @@ export function TeamDashboard() {
                                             <Edit2 size={16} />
                                         </button>
                                     )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Treinamentos Ministrados</h3>
+                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <GraduationCap size={24} color="white" />
+                                            <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
                                         </div>
                                     </div>
-                                    <div style={{
-                                        flex: 1,
-                                        fontSize: '0.95rem',
-                                        fontWeight: 500,
-                                        lineHeight: 1.5,
-                                        whiteSpace: 'pre-wrap',
-                                        maxHeight: '120px',
-                                        overflowY: 'auto'
-                                    }}>
-                                        {manualStats.treinamentos || 'Nenhum treinamento informado.'}
+
+                                    <div style={{ marginTop: '16px' }}>
+                                        <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    size={24}
+                                                    fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
+                                                    color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                            <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                                                {manualStats.satisfaction}
+                                            </span>
+                                            <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card 3: Manuals Sent (Orange) */}
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+                                    borderRadius: '16px', padding: '24px', color: 'white',
+                                    boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                    position: 'relative'
+                                }}>
+                                    {role === 'TEAM' && (
+                                        <button
+                                            onClick={() => setIsEditingStats(true)}
+                                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                            title="Editar dados manuais"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                    )}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
+                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                                {manualStats.manuals}
+                                            </div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                            <Share2 size={24} color="white" />
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                        SAJ Ajuda
                                     </div>
                                 </div>
                             </div>
-                        </>
-                    )
-                }
+                        )}
 
-                {/* Status Details Modal */}
-                {
-                    selectedStatus && (
-                        <StatusDetailsModal
-                            status={selectedStatus}
-                            chamados={chamados}
-                            onClose={() => setSelectedStatus(null)}
-                        />
-                    )
-                }
+                        {/* Manual Stats Edit Modal */}
+                        {isEditingStats && (
+                            <div style={{
+                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
+                            }}>
+                                <div style={{
+                                    background: 'white', padding: '32px', borderRadius: '24px',
+                                    width: '100%', maxWidth: '600px', maxHeight: '90vh',
+                                    overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                                }}>
+                                    <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Atualizar Métricas</h3>
+
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                            Índice de Satisfação (0-5)
+                                        </label>
+                                        <input
+                                            type="number" step="0.01" max="5" min="0"
+                                            value={manualStats.satisfaction}
+                                            onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                            Manuais Enviados
+                                        </label>
+                                        <input
+                                            type="number" step="1" min="0"
+                                            value={manualStats.manuals}
+                                            onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                            Projetos
+                                        </label>
+                                        <textarea
+                                            rows={5}
+                                            placeholder="Liste os projetos..."
+                                            value={manualStats.projetos}
+                                            onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                            Treinamentos Ministrados
+                                        </label>
+                                        <textarea
+                                            rows={5}
+                                            placeholder="Liste os treinamentos..."
+                                            value={manualStats.treinamentos}
+                                            onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                        <button
+                                            onClick={() => setIsEditingStats(false)}
+                                            style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={handleSaveStats}
+                                            style={{
+                                                background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px',
+                                                padding: '8px 24px', fontWeight: 600, cursor: 'pointer',
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                            }}
+                                        >
+                                            Salvar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                        }
+
+                        {/* SKELETON LOADER */}
+                        {
+                            isLoading && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                    </div>
+                                    <div className="dashboard-grid">
+                                        <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                                        <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                        {/* EMPTY STATE */}
+                        {
+                            !isLoading && tickets.length === 0 && chamados.length === 0 && (
+                                <div className="upload-section">
+                                    {role === 'TEAM' ? (
+                                        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                            <h3>Nenhum dado importado ainda.</h3>
+                                            <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                            <h3>Aguardando dados...</h3>
+                                            <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        }
 
 
+
+                        {/* DASHBOARD CHARTS - CSV */}
+                        {
+                            !isLoading && tickets.length > 0 && (
+                                <>
+                                    <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <ClipboardList size={20} color="#2563eb" />
+                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                            Painel de chamados
+                                        </h2>
+                                    </div>
+                                    <div className="dashboard-grid">
+                                        <OriginChart data={originData} />
+                                        <CategoryChart data={categoryData} />
+                                    </div>
+
+                                    <div className="dashboard-grid">
+                                        <RequesterChart data={requesterData} />
+                                        <HistoryChart data={historyData} />
+                                    </div>
+                                </>
+                            )
+                        }
+
+                        {/* DASHBOARD CHARTS - XLSX Chamados */}
+                        {
+                            !isLoading && showChamados && (
+                                <>
+                                    <div style={{
+                                        marginTop: tickets.length > 0 ? '32px' : '0',
+                                        marginBottom: '16px',
+                                        display: 'flex', alignItems: 'center', gap: '10px'
+                                    }}>
+                                        <ClipboardList size={20} color="#2563eb" />
+                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                            Painel de Chamados JIRA
+                                        </h2>
+                                        <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                            {chamados.length} registros
+                                        </span>
+                                    </div>
+                                    <div className="dashboard-grid">
+                                        <StatusChart
+                                            data={statusData}
+                                            total={chamados.length}
+                                            onSliceClick={handleStatusClick}
+                                        />
+                                        <FuncionalidadeChart data={funcData} />
+                                    </div>
+                                </>
+                            )
+                        }
+
+                        {/* NEW PANEL - PROJETOS & TREINAMENTOS */}
+                        {
+                            !isLoading && (
+                                <>
+                                    <div style={{
+                                        marginTop: '32px',
+                                        marginBottom: '16px',
+                                        display: 'flex', alignItems: 'center', gap: '10px'
+                                    }}>
+                                        <ClipboardList size={20} color="#2563eb" />
+                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                            Entregas do Período
+                                        </h2>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                        {/* Card: Projetos (Teal) */}
+                                        <div style={{
+                                            background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                                            borderRadius: '16px', padding: '24px', color: 'white',
+                                            boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
+                                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                            position: 'relative'
+                                        }}>
+                                            {role === 'TEAM' && (
+                                                <button
+                                                    onClick={() => setIsEditingStats(true)}
+                                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                    title="Editar dados manuais"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            )}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                <div>
+                                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Projetos no Mês</h3>
+                                                </div>
+                                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                    <FolderKanban size={24} color="white" />
+                                                </div>
+                                            </div>
+                                            <div style={{
+                                                flex: 1,
+                                                fontSize: '0.95rem',
+                                                fontWeight: 500,
+                                                lineHeight: 1.5,
+                                                whiteSpace: 'pre-wrap',
+                                                maxHeight: '120px',
+                                                overflowY: 'auto'
+                                            }}>
+                                                {manualStats.projetos || 'Nenhum projeto informado.'}
+                                            </div>
+                                        </div>
+
+                                        {/* Card: Treinamentos (Indigo) */}
+                                        <div style={{
+                                            background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                                            borderRadius: '16px', padding: '24px', color: 'white',
+                                            boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
+                                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                            position: 'relative'
+                                        }}>
+                                            {role === 'TEAM' && (
+                                                <button
+                                                    onClick={() => setIsEditingStats(true)}
+                                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                    title="Editar dados manuais"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            )}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                <div>
+                                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Treinamentos Ministrados</h3>
+                                                </div>
+                                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                    <GraduationCap size={24} color="white" />
+                                                </div>
+                                            </div>
+                                            <div style={{
+                                                flex: 1,
+                                                fontSize: '0.95rem',
+                                                fontWeight: 500,
+                                                lineHeight: 1.5,
+                                                whiteSpace: 'pre-wrap',
+                                                maxHeight: '120px',
+                                                overflowY: 'auto'
+                                            }}>
+                                                {manualStats.treinamentos || 'Nenhum treinamento informado.'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )
+                        }
+
+                        {/* Status Details Modal */}
+                        {
+                            selectedStatus && (
+                                <StatusDetailsModal
+                                    status={selectedStatus}
+                                    chamados={chamados}
+                                    onClose={() => setSelectedStatus(null)}
+                                />
+                            )
+                        }
+
+
+                    </>
+                ) : (
+                    <>
+                        {/* INDICADORES VIEW */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: 'white', padding: '16px 24px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(37, 99, 235, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                                    <BarChart2 size={24} />
+                                </div>
+                                <div>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Indicadores Anuais</h2>
+                                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Métricas preenchidas mês a mês por relatório</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <Calendar size={18} color="#64748b" />
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>Ano:</span>
+                                    <select
+                                        value={indicatorsYear}
+                                        onChange={(e) => setIndicatorsYear(e.target.value)}
+                                        style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
+                                    >
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2027">2027</option>
+                                    </select>
+                                </div>
+
+                                {role === 'TEAM' && (
+                                    <button
+                                        onClick={() => setIsEditingIndicators(true)}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}
+                                    >
+                                        <Edit2 size={18} />
+                                        Atualizar Ano
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '24px' }}>
+                            <YearlyLineChart
+                                data={yearlyIndicators.map(indicator => ({
+                                    name: indicator.month.split('-')[1],
+                                    value: Number(indicator.peticionamento) || 0
+                                }))}
+                                title="Evolução de Peticionamento"
+                                color="#5865F2"
+                            />
+                            <YearlyLineChart
+                                data={yearlyIndicators.map(indicator => ({
+                                    name: indicator.month.split('-')[1],
+                                    value: Number(indicator.extrajudiciais) || 0
+                                }))}
+                                title="Novos Extrajudiciais"
+                                color="#5865F2"
+                            />
+                            <YearlyLineChart
+                                data={yearlyIndicators.map(indicator => ({
+                                    name: indicator.month.split('-')[1],
+                                    value: Number(indicator.documentos) || 0
+                                }))}
+                                title="Documentos Emitidos"
+                                color="#5865F2"
+                            />
+                            <YearlyLineChart
+                                data={yearlyIndicators.map(indicator => ({
+                                    name: indicator.month.split('-')[1],
+                                    value: Number(indicator.movimentos) || 0
+                                }))}
+                                title="Movimentos Taxonômicos"
+                                color="#5865F2"
+                            />
+                        </div>
+
+                        {isEditingIndicators && (
+                            <div style={{
+                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
+                            }}>
+                                <div style={{
+                                    background: 'white', padding: '32px', borderRadius: '24px',
+                                    width: '100%', maxWidth: '800px', maxHeight: '90vh',
+                                    overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                                }}>
+                                    <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>
+                                        Atualizar Indicadores ({indicatorsYear})
+                                    </h3>
+
+                                    <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Mês</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Peticionamento</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Novos Extrajudiciais</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Documentos Emitidos</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Movimentos Tax.</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {indicatorsForm.map((item, index) => {
+                                                    const mesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                                                    return (
+                                                        <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                            <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>
+                                                                {mesLabels[index]}
+                                                            </td>
+                                                            <td style={{ padding: '8px' }}>
+                                                                <input type="number" value={item.peticionamento} onChange={e => {
+                                                                    const newForm = [...indicatorsForm];
+                                                                    newForm[index].peticionamento = e.target.value;
+                                                                    setIndicatorsForm(newForm);
+                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                            </td>
+                                                            <td style={{ padding: '8px' }}>
+                                                                <input type="number" value={item.extrajudiciais} onChange={e => {
+                                                                    const newForm = [...indicatorsForm];
+                                                                    newForm[index].extrajudiciais = e.target.value;
+                                                                    setIndicatorsForm(newForm);
+                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                            </td>
+                                                            <td style={{ padding: '8px' }}>
+                                                                <input type="number" value={item.documentos} onChange={e => {
+                                                                    const newForm = [...indicatorsForm];
+                                                                    newForm[index].documentos = e.target.value;
+                                                                    setIndicatorsForm(newForm);
+                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                            </td>
+                                                            <td style={{ padding: '8px' }}>
+                                                                <input type="number" value={item.movimentos} onChange={e => {
+                                                                    const newForm = [...indicatorsForm];
+                                                                    newForm[index].movimentos = e.target.value;
+                                                                    setIndicatorsForm(newForm);
+                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                        <button
+                                            onClick={() => setIsEditingIndicators(false)}
+                                            style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}>
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={handleSaveIndicators}
+                                            style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 24px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                            Salvar Indicadores
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </main >
         </div >
     );

@@ -72,8 +72,12 @@ model MonthlyData {
   month       String   // Format: "YYYY-MM"
   satisfaction String? // Stored as string to match frontend "4.5"
   manuals     String?  // Stored as string to match frontend "10"
-  projetos    String?  // Projetos
-  treinamentos String? // Treinamentos ministrados no mês
+  projetos     String?  // Projetos
+  treinamentos String?  // Treinamentos ministrados no mês
+  peticionamento String? // Evolução de Peticionamento
+  extrajudiciais String? // Novos Extrajudiciais
+  documentos    String? // Documentos Emitidos
+  movimentos    String? // Movimentos Taxonômicos
 
   userId      String
   user        User     @relation(fields: [userId], references: [id])

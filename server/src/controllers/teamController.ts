@@ -331,3 +331,77 @@ export const resetTeamData = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao limpar dados do mês.' });
   }
 };
+
+export const getYearlyIndicators = async (req: Request, res: Response) => {
+  try {
+    const teamId = String(req.params.teamId);
+    let year = req.query.year ? String(req.query.year) : new Date().getFullYear().toString();
+
+    const monthlyData = await prisma.monthlyData.findMany({
+      where: {
+        userId: teamId,
+        month: {
+          startsWith: year
+        }
+      },
+      orderBy: {
+        month: 'asc'
+      }
+    });
+
+    res.json(monthlyData);
+  } catch (error) {
+    console.error('Get yearly indicators error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const saveYearlyIndicators = async (req: Request, res: Response) => {
+  try {
+    const teamId = String(req.params.teamId);
+    const { year, data } = req.body;
+    // data should be an array of objects: { month: "YYYY-MM", peticionamento: "10", extrajudiciais: "5", documentos: "100", movimentos: "20" }
+
+    if (!year || !Array.isArray(data)) {
+      return res.status(400).json({ error: 'Year and data array are required' });
+    }
+
+    const promises = data.map(async (item: any) => {
+      if (!item.month) return null;
+
+      const existing = await prisma.monthlyData.findFirst({
+        where: { userId: teamId, month: item.month }
+      });
+
+      if (existing) {
+        return prisma.monthlyData.update({
+          where: { id: existing.id },
+          data: {
+            peticionamento: item.peticionamento,
+            extrajudiciais: item.extrajudiciais,
+            documentos: item.documentos,
+            movimentos: item.movimentos,
+          }
+        });
+      } else {
+        return prisma.monthlyData.create({
+          data: {
+            userId: teamId,
+            month: item.month,
+            peticionamento: item.peticionamento,
+            extrajudiciais: item.extrajudiciais,
+            documentos: item.documentos,
+            movimentos: item.movimentos,
+          }
+        });
+      }
+    });
+
+    await Promise.all(promises);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Save yearly indicators error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
