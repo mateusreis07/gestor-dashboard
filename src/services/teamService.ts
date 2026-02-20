@@ -5,7 +5,7 @@ export interface DashboardData {
   team: { id: string; name: string; email: string };
   tickets: Ticket[];
   chamados: Chamado[];
-  manualStats: { satisfaction: string | null; manuals: string | null } | null;
+  manualStats: { satisfaction: string | null; manuals: string | null; projetos: string | null; treinamentos: string | null } | null;
   availableMonths: string[];
   history?: number[];
 }
@@ -19,11 +19,13 @@ export const teamService = {
   },
 
   // Salva estatísticas manuais (satisfação, manuais enviados) de um mês
-  async saveManualStats(teamId: string, month: string, satisfaction: string, manuals: string) {
+  async saveManualStats(teamId: string, month: string, satisfaction: string, manuals: string, projetos: string, treinamentos: string) {
     const response = await api.post(`/teams/${teamId}/manual-stats`, {
       month,
       satisfaction,
       manuals,
+      projetos,
+      treinamentos,
     });
     return response.data;
   },

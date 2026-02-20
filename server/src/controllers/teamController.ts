@@ -104,7 +104,7 @@ export const getTeamDashboard = async (req: Request, res: Response) => {
       team,
       tickets,
       chamados,
-      manualStats: manualStats ? { satisfaction: manualStats.satisfaction, manuals: manualStats.manuals } : null,
+      manualStats: manualStats ? { satisfaction: manualStats.satisfaction, manuals: manualStats.manuals, projetos: manualStats.projetos, treinamentos: manualStats.treinamentos } : null,
       availableMonths,
       history: yearlyHistory // Retorna o histórico calculado
     });
@@ -118,26 +118,11 @@ export const getTeamDashboard = async (req: Request, res: Response) => {
 export const saveManualStats = async (req: Request, res: Response) => {
   try {
     const teamId = String(req.params.teamId);
-    const { month, satisfaction, manuals } = req.body;
+    const { month, satisfaction, manuals, projetos, treinamentos } = req.body;
 
     if (!month) {
       return res.status(400).json({ error: 'Month is required' });
     }
-
-    // Use upsert to create or update
-    // Note: The unique constraint is on [userId, month]
-    // But Prisma upsert needs a unique 'where' clause.
-    // We will need to check if we can rely on the @@unique or if we should use findFirst
-
-    // Since we have @@unique([userId, month]), we will need to create a composite key usage or workaround.
-    // Actually, prisma allows findUnique/upsert on @@unique if fields are scalar.
-
-    // However, Prisma generates a compound unique input type. Let's see.
-    // Assuming schema.prisma has @@unique([userId, month])
-
-    // Wait, Prisma upsert require a unique identifier.
-    // Let's use findFirst then update/create manually for simplicity if keys are tricky,
-    // or ensure schema supports it.
 
     const existing = await prisma.monthlyData.findFirst({
       where: { userId: teamId, month }
@@ -146,12 +131,12 @@ export const saveManualStats = async (req: Request, res: Response) => {
     if (existing) {
       const updated = await prisma.monthlyData.update({
         where: { id: existing.id },
-        data: { satisfaction, manuals }
+        data: { satisfaction, manuals, projetos, treinamentos }
       });
       return res.json(updated);
     } else {
       const created = await prisma.monthlyData.create({
-        data: { userId: teamId, month, satisfaction, manuals }
+        data: { userId: teamId, month, satisfaction, manuals, projetos, treinamentos }
       });
       return res.json(created);
     }
