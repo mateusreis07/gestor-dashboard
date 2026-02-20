@@ -172,12 +172,15 @@ const formatDateToISO = (dateStr: string, fallbackMonth?: string): string => {
   if (dateStr.includes('-') && (dateStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dateStr))) return dateStr;
 
   try {
-    const datePart = dateStr.trim().split(' ')[0];
+    const rawTokens = dateStr.trim().split(' ');
+    const datePart = rawTokens[0];
+    const timePart = rawTokens[1];
+    const ampmPart = rawTokens[2];
+
     const parts = datePart.includes('/') ? datePart.split('/') : datePart.split('-');
 
-    if (parts.length === 3) {
+    if (parts.length >= 3) {
       const p0 = parseInt(parts[0], 10);
-      const p1 = parseInt(parts[1], 10);
       let year = parseInt(parts[2], 10);
 
       // Correção de ano de 2 dígitos (ex: 24 -> 2024, 25 -> 2025)
@@ -186,18 +189,37 @@ const formatDateToISO = (dateStr: string, fallbackMonth?: string): string => {
       }
 
       let day = 1, month = 0; // fallback values
+      const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const p1Text = parts[1].toLowerCase().replace(/[^a-z]/g, '');
+      const monthIndex = monthNames.indexOf(p1Text.substring(0, 3));
 
-      // Identifica formato DD/MM/YYYY vs MM/DD/YYYY dinamicamente
-      if (p0 > 12) {
-        day = p0; month = p1 - 1;
-      } else if (p1 > 12) {
-        month = p0 - 1; day = p1;
+      if (monthIndex !== -1) {
+        day = p0;
+        month = monthIndex;
       } else {
-        // Assume DD/MM (Padrão BR) se ambos forem <= 12
-        day = p0; month = p1 - 1;
+        const p1 = parseInt(parts[1], 10);
+        // Identifica formato DD/MM/YYYY vs MM/DD/YYYY dinamicamente
+        if (p0 > 12) {
+          day = p0; month = p1 - 1;
+        } else if (p1 > 12) {
+          month = p0 - 1; day = p1;
+        } else {
+          // Assume DD/MM (Padrão BR) se ambos forem <= 12
+          day = p0; month = p1 - 1;
+        }
       }
 
-      const d = new Date(Date.UTC(year, month, day)); // UTC evita problemas de timezone shift
+      let hours = 0;
+      let minutes = 0;
+      if (timePart) {
+        const timeTokens = timePart.split(':');
+        hours = parseInt(timeTokens[0] || '0', 10);
+        minutes = parseInt(timeTokens[1] || '0', 10);
+        if (ampmPart?.toLowerCase() === 'pm' && hours < 12) hours += 12;
+        if (ampmPart?.toLowerCase() === 'am' && hours === 12) hours = 0;
+      }
+
+      const d = new Date(Date.UTC(year, month, day, hours, minutes)); // UTC evita problemas de timezone shift
 
       if (!isNaN(d.getTime())) {
         return d.toISOString();
