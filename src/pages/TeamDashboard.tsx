@@ -32,6 +32,10 @@ export function TeamDashboard() {
     const [chamados, setChamados] = useState<Chamado[]>([]);
     const [history, setHistory] = useState<number[]>([]);
 
+    const [isFetchingMonths, setIsFetchingMonths] = useState(true);
+    const [isFetchingData, setIsFetchingData] = useState(false);
+    const isLoading = isFetchingMonths || isFetchingData;
+
 
     // Manual Stats State
     const [manualStats, setManualStats] = useState({ satisfaction: '0', manuals: '0' });
@@ -45,6 +49,7 @@ export function TeamDashboard() {
     useEffect(() => {
         if (!currentTeam) return;
 
+        setIsFetchingMonths(true);
         teamService.getDashboard(currentTeam.id).then(data => {
             if (data.availableMonths && data.availableMonths.length > 0) {
                 setAvailableMonths(data.availableMonths);
@@ -58,12 +63,18 @@ export function TeamDashboard() {
                     if (!currentViewMonth) setCurrentViewMonth(localMonths[0]);
                 }
             }
-        }).catch(err => console.error('Failed to load initial dashboard data', err));
+        }).catch(err => {
+            console.error('Failed to load initial dashboard data', err);
+        }).finally(() => {
+            setIsFetchingMonths(false);
+        });
     }, [currentTeam]);
 
     // Load Data when Month/Team Changes
     useEffect(() => {
         if (!currentTeam) return;
+
+        setIsFetchingData(true);
 
         // Se tiver mês selecionado, busca filtrado da API
         if (currentViewMonth) {
@@ -89,6 +100,8 @@ export function TeamDashboard() {
                     setChamados(localData.chamados || []);
                     if (localData.manualStats) setManualStats(localData.manualStats);
                 }
+            }).finally(() => {
+                setIsFetchingData(false);
             });
         } else {
             // Se não tiver mês (ex: time novo sem dados), ou fallback local
@@ -103,6 +116,7 @@ export function TeamDashboard() {
                 setChamados([]);
                 setManualStats({ satisfaction: '0', manuals: '0' });
             }
+            setIsFetchingData(false);
         }
     }, [currentViewMonth, currentTeam]);
 
@@ -435,6 +449,15 @@ export function TeamDashboard() {
                     .date-field input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
                     .date-field input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: .5; }
+                    }
+                    .skeleton-box {
+                        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                        background: #e2e8f0;
+                    }
+
                     @media (max-width: 768px) {
                         .desktop-only { display: none; }
                         .layout-container { padding: 16px; }
@@ -445,111 +468,113 @@ export function TeamDashboard() {
             <main className="dashboard-content" style={{ marginTop: '0px' }}> {/* Add margin top */}
 
                 {/* KPI Cards Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                {!isLoading && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
 
-                    {/* Card 1: Total Tickets (Violet) */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-                        borderRadius: '16px', padding: '24px', color: 'white',
-                        boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
-                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
-                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                    {filteredTickets.length}
+                        {/* Card 1: Total Tickets (Violet) */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                            borderRadius: '16px', padding: '24px', color: 'white',
+                            boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
+                                    <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                        {filteredTickets.length}
+                                    </div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                    <TicketIcon size={24} color="white" />
                                 </div>
                             </div>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                <TicketIcon size={24} color="white" />
-                            </div>
-                        </div>
-                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                            Status: Filtrado por data
-                        </div>
-                    </div>
-
-                    {/* Card 2: Satisfaction (Pink) */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
-                        borderRadius: '16px', padding: '24px', color: 'white',
-                        boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
-                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                        position: 'relative'
-                    }}>
-                        {role === 'TEAM' && (
-                            <button
-                                onClick={() => setIsEditingStats(true)}
-                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                title="Editar dados manuais"
-                            >
-                                <Edit2 size={16} />
-                            </button>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
+                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                Status: Filtrado por data
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '16px' }}>
-                            <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        size={24}
-                                        fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
-                                        color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
-                                    />
-                                ))}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
-                                    {manualStats.satisfaction}
-                                </span>
-                                <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 3: Manuals Sent (Orange) */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
-                        borderRadius: '16px', padding: '24px', color: 'white',
-                        boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
-                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                        position: 'relative'
-                    }}>
-                        {role === 'TEAM' && (
-                            <button
-                                onClick={() => setIsEditingStats(true)}
-                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                title="Editar dados manuais"
-                            >
-                                <Edit2 size={16} />
-                            </button>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
-                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                    {manualStats.manuals}
+                        {/* Card 2: Satisfaction (Pink) */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+                            borderRadius: '16px', padding: '24px', color: 'white',
+                            boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                            position: 'relative'
+                        }}>
+                            {role === 'TEAM' && (
+                                <button
+                                    onClick={() => setIsEditingStats(true)}
+                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                    title="Editar dados manuais"
+                                >
+                                    <Edit2 size={16} />
+                                </button>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                    <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
                                 </div>
                             </div>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                <Share2 size={24} color="white" />
+
+                            <div style={{ marginTop: '16px' }}>
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            size={24}
+                                            fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
+                                            color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
+                                        />
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                    <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                                        {manualStats.satisfaction}
+                                    </span>
+                                    <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
+                                </div>
                             </div>
                         </div>
-                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                            SAJ Ajuda
+
+                        {/* Card 3: Manuals Sent (Orange) */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+                            borderRadius: '16px', padding: '24px', color: 'white',
+                            boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                            position: 'relative'
+                        }}>
+                            {role === 'TEAM' && (
+                                <button
+                                    onClick={() => setIsEditingStats(true)}
+                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                    title="Editar dados manuais"
+                                >
+                                    <Edit2 size={16} />
+                                </button>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
+                                    <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                        {manualStats.manuals}
+                                    </div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                    <Share2 size={24} color="white" />
+                                </div>
+                            </div>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                SAJ Ajuda
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Manual Stats Edit Modal */}
                 {isEditingStats && (
@@ -605,86 +630,112 @@ export function TeamDashboard() {
                             </div>
                         </div>
                     </div>
-                )}
+                )
+                }
+
+                {/* SKELETON LOADER */}
+                {
+                    isLoading && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                            </div>
+                            <div className="dashboard-grid">
+                                <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                                <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                            </div>
+                        </div>
+                    )
+                }
 
                 {/* EMPTY STATE */}
-                {tickets.length === 0 && chamados.length === 0 && (
-                    <div className="upload-section">
-                        {role === 'TEAM' ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                <h3>Nenhum dado importado ainda.</h3>
-                                <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
-                            </div>
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                <h3>Aguardando dados...</h3>
-                                <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {
+                    !isLoading && tickets.length === 0 && chamados.length === 0 && (
+                        <div className="upload-section">
+                            {role === 'TEAM' ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                    <h3>Nenhum dado importado ainda.</h3>
+                                    <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                    <h3>Aguardando dados...</h3>
+                                    <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
 
 
 
                 {/* DASHBOARD CHARTS - CSV */}
-                {tickets.length > 0 && (
-                    <>
-                        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <ClipboardList size={20} color="#2563eb" />
-                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                Painel de chamados
-                            </h2>
-                        </div>
-                        <div className="dashboard-grid">
-                            <OriginChart data={originData} />
-                            <CategoryChart data={categoryData} />
-                        </div>
+                {
+                    !isLoading && tickets.length > 0 && (
+                        <>
+                            <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <ClipboardList size={20} color="#2563eb" />
+                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                    Painel de chamados
+                                </h2>
+                            </div>
+                            <div className="dashboard-grid">
+                                <OriginChart data={originData} />
+                                <CategoryChart data={categoryData} />
+                            </div>
 
-                        <div className="dashboard-grid">
-                            <RequesterChart data={requesterData} />
-                            <HistoryChart data={historyData} />
-                        </div>
-                    </>
-                )}
+                            <div className="dashboard-grid">
+                                <RequesterChart data={requesterData} />
+                                <HistoryChart data={historyData} />
+                            </div>
+                        </>
+                    )
+                }
 
                 {/* DASHBOARD CHARTS - XLSX Chamados */}
-                {showChamados && (
-                    <>
-                        <div style={{
-                            marginTop: tickets.length > 0 ? '32px' : '0',
-                            marginBottom: '16px',
-                            display: 'flex', alignItems: 'center', gap: '10px'
-                        }}>
-                            <ClipboardList size={20} color="#2563eb" />
-                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                Painel de Chamados JIRA
-                            </h2>
-                            <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
-                                {chamados.length} registros
-                            </span>
-                        </div>
-                        <div className="dashboard-grid">
-                            <StatusChart
-                                data={statusData}
-                                total={chamados.length}
-                                onSliceClick={handleStatusClick}
-                            />
-                            <FuncionalidadeChart data={funcData} />
-                        </div>
-                    </>
-                )}
+                {
+                    !isLoading && showChamados && (
+                        <>
+                            <div style={{
+                                marginTop: tickets.length > 0 ? '32px' : '0',
+                                marginBottom: '16px',
+                                display: 'flex', alignItems: 'center', gap: '10px'
+                            }}>
+                                <ClipboardList size={20} color="#2563eb" />
+                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                    Painel de Chamados JIRA
+                                </h2>
+                                <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                    {chamados.length} registros
+                                </span>
+                            </div>
+                            <div className="dashboard-grid">
+                                <StatusChart
+                                    data={statusData}
+                                    total={chamados.length}
+                                    onSliceClick={handleStatusClick}
+                                />
+                                <FuncionalidadeChart data={funcData} />
+                            </div>
+                        </>
+                    )
+                }
 
                 {/* Status Details Modal */}
-                {selectedStatus && (
-                    <StatusDetailsModal
-                        status={selectedStatus}
-                        chamados={chamados}
-                        onClose={() => setSelectedStatus(null)}
-                    />
-                )}
+                {
+                    selectedStatus && (
+                        <StatusDetailsModal
+                            status={selectedStatus}
+                            chamados={chamados}
+                            onClose={() => setSelectedStatus(null)}
+                        />
+                    )
+                }
 
 
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
