@@ -1,6 +1,7 @@
-// Vercel Serverless Function Entry Point
-// TypeScript compiles 'export default app' to 'exports.default = app'
-// so we need to handle both CommonJS and ESM-interop exports
-const server = require('../server/dist/index.js');
+// api/index.js
+// Root package.json has "type": "module", so this file is ESM
+// server/dist/index.js is CommonJS (compiled with module: "commonjs")
+// Importing CJS from ESM: module.exports becomes the default import
+import server from '../server/dist/index.js';
 const app = server.default || server;
-module.exports = app;
+export default app;
