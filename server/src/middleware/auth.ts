@@ -22,6 +22,14 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     // Precisamos disso para as Foreign Keys funcionarem
     let dbUser = await prisma.user.findUnique({ where: { id: user.id } });
 
+    if (!dbUser && user.email) {
+      // Se não achou pelo ID, tenta pelo e-mail (caso seja usuário legado)
+      dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+      if (dbUser) {
+        console.log(`[Auth Sync] Found legacy user by email: ${user.email} (Local ID: ${dbUser.id})`);
+      }
+    }
+
     if (!dbUser) {
       // Se não existe, cria um registro básico baseando-se no auth
       // Precisamos de email e password (mesmo sendo dummy)

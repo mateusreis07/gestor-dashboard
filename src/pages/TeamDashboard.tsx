@@ -17,7 +17,7 @@ import {
     parseTicketDate
 } from '../utils/csvParser';
 import { getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
-import { getAvailableMonths, loadMonthData } from '../utils/storage';
+import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
 import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings } from 'lucide-react';
@@ -147,16 +147,33 @@ export function TeamDashboard() {
             return;
         }
 
-        // Para o gestor visualizando um time específico, busca via API
+        // Para o gestor visualizando um time específico, busca via API com Fallback Local
         import('../services/teamService').then(({ managerTeamsService }) => {
             managerTeamsService.listTeams().then(teams => {
                 const team = teams.find(t => t.id === resolvedTeamId);
                 if (team) {
                     setCurrentTeam({ ...team, password: '' } as any);
                 } else {
+                    // Tentar Local Storage se não achar na API (pode ser delay de sync)
+                    const localTeams = loadTeams();
+                    const local = localTeams.find(t => t.id === resolvedTeamId);
+                    if (local) {
+                        setCurrentTeam({ ...local, password: '' } as any);
+                    } else {
+                        console.warn('Team not found in API or LocalStorage');
+                        navigate('/app/manager');
+                    }
+                }
+            }).catch((err) => {
+                console.error('API Error, trying local storage', err);
+                const localTeams = loadTeams();
+                const local = localTeams.find(t => t.id === resolvedTeamId);
+                if (local) {
+                    setCurrentTeam({ ...local, password: '' } as any);
+                } else {
                     navigate('/app/manager');
                 }
-            }).catch(() => navigate('/app/manager'));
+            });
         });
     }, [teamId, navigate, role, user]);
 
