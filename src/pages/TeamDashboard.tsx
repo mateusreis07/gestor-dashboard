@@ -604,11 +604,15 @@ export function TeamDashboard() {
                 {isEditingStats && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 1000, backdropFilter: 'blur(4px)'
+                        background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
                     }}>
-                        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '320px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-                            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', color: '#0f172a' }}>Atualizar Métricas</h3>
+                        <div style={{
+                            background: 'white', padding: '32px', borderRadius: '24px',
+                            width: '100%', maxWidth: '600px', maxHeight: '90vh',
+                            overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                        }}>
+                            <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Atualizar Métricas</h3>
 
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
@@ -639,7 +643,7 @@ export function TeamDashboard() {
                                     Projetos
                                 </label>
                                 <textarea
-                                    rows={3}
+                                    rows={5}
                                     placeholder="Liste os projetos..."
                                     value={manualStats.projetos}
                                     onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
@@ -652,7 +656,7 @@ export function TeamDashboard() {
                                     Treinamentos Ministrados
                                 </label>
                                 <textarea
-                                    rows={3}
+                                    rows={5}
                                     placeholder="Liste os treinamentos..."
                                     value={manualStats.treinamentos}
                                     onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
@@ -808,7 +812,7 @@ export function TeamDashboard() {
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Projetos no Mês</h3>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Projetos no Mês</h3>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
                                             <FolderKanban size={24} color="white" />
@@ -846,7 +850,7 @@ export function TeamDashboard() {
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Treinamentos Ministrados</h3>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Treinamentos Ministrados</h3>
                                         </div>
                                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
                                             <GraduationCap size={24} color="white" />
