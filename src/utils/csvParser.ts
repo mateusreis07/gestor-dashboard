@@ -58,8 +58,16 @@ export const parseTicketDate = (dateStr: string): Date | null => {
         } else {
             // Assume DD/MM/YYYY
             const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // JS Month is 0-indexed
+            let month = parseInt(parts[1], 10) - 1; // JS Month is 0-indexed
             const year = parseInt(parts[2], 10);
+
+            // Handle localized month text (e.g. 'jan.', 'fev.')
+            if (isNaN(month) && typeof parts[1] === 'string') {
+                const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                const p1Text = parts[1].toLowerCase().replace(/[^a-z]/g, '');
+                const monthIndex = monthNames.indexOf(p1Text.substring(0, 3));
+                if (monthIndex !== -1) month = monthIndex;
+            }
 
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 date = new Date(year, month, day);

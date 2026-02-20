@@ -291,7 +291,7 @@ export const uploadData = async (req: Request, res: Response) => {
         numeroChamado: String(c['Numero'] || c['numeroChamado'] || ''),
         resumo: String(c['Resumo'] || c['resumo'] || ''),
         statusChamado: String(c['Status'] || c['statusChamado'] || 'Aberto'),
-        criado: formatDateToISO(String(c['Criado'] || c['criado'] || ''), month),
+        criado: String(c['Criado'] || c['criado'] || ''),
         fimDoPrazo: String(c['Fim do prazo'] || c['fimDoPrazo'] || ''),
         prazoAjustado: String(c['Prazo ajustado'] || c['prazoAjustado'] || ''),
         relator: String(c['Relator'] || c['relator'] || ''),
