@@ -90,22 +90,22 @@ export function OriginChart({ data }: Props) {
             <p className={styles.subtitle}>Distribuição por canal de atendimento.</p>
 
             <div className={styles.chartContainer}>
-                <div style={{ width: '100%', height: 350 }}>
-                    <ResponsiveContainer>
+                <div className={styles.chartWrapper}>
+                    <ResponsiveContainer width="100%" height={280}>
                         <PieChart>
                             <Pie
                                 data={chartData}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={80}
-                                outerRadius={110}
-                                paddingAngle={3}
+                                outerRadius={120}
+                                paddingAngle={2}
                                 dataKey="value"
                                 onClick={(data) => handleToggle(data.name)}
                                 cursor="pointer"
                                 stroke="none"
-                                label={({ value }) => value}
-                                labelLine={true}
+                                labelLine={false}
+                                label={false}
                             >
                                 {chartData.map((entry, index) => {
                                     const isActive = activeName === entry.name;
@@ -132,9 +132,14 @@ export function OriginChart({ data }: Props) {
                             />
                         </PieChart>
                     </ResponsiveContainer>
+
+                    <div className={styles.innerTotal}>
+                        <span className={styles.innerValue}>{activeName ? activeValue : total}</span>
+                        <span className={styles.innerLabel}>Total</span>
+                    </div>
                 </div>
 
-                <div className={styles.legend}>
+                <div className={styles.legendList}>
                     {chartData.map((item, index) => {
                         const isActive = activeName === item.name;
                         const isDimmed = activeName && !isActive;
@@ -146,21 +151,17 @@ export function OriginChart({ data }: Props) {
                                 className={`${styles.legendItem} ${isDimmed ? styles.inactive : ''}`}
                                 onClick={() => handleToggle(item.name)}
                             >
-                                <span
-                                    className={styles.legendColor}
-                                    style={{ backgroundColor: color }}
-                                />
-                                <span className={styles.legendText}>{item.name}</span>
+                                <div className={styles.legendItemLeft}>
+                                    <span
+                                        className={styles.legendColor}
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className={styles.legendText}>{item.name}</span>
+                                </div>
+                                <span className={styles.legendValue}>{item.value}</span>
                             </div>
                         );
                     })}
-                </div>
-
-                <div className={styles.totalContainer}>
-                    <span className={styles.totalValue}>{activeValue}</span>
-                    <span className={styles.totalLabel}>
-                        {activeName ? `Requisições via ${activeName}` : 'Total de requisições'}
-                    </span>
                 </div>
             </div>
         </div>
