@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  password     String
+  name         String?
+  role         UserRole    @default(TEAM)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  tickets      Ticket[]
+  chamados     Chamado[]
+  monthlyStats MonthlyData[]
+}
+
+enum UserRole {
+  MANAGER
+  TEAM
+}
+
+model Ticket {
+  id                String   @id @default(uuid())
+  originalId        String?  // The ID from the CSV if applicable
+  titulo            String
+  status            String
+  dataAbertura      String   // Keeping as string to match CSV format for now, or could parse to DateTime
+  ultimaAtualizacao String?
+  requerente        String?
+  tecnico           String?
+  categoria         String?
+  localizacao       String?
+  origem            String?
+
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Chamado {
+  id             String   @id @default(uuid())
+  numeroChamado  String
+  resumo         String
+  criado         String
+  fimDoPrazo     String?
+  prazoAjustado  String?
+  statusChamado  String
+  relator        String?
+  modulo         String?
+  funcionalidade String?
+
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MonthlyData {
+  id          String   @id @default(uuid())
+  month       String   // Format: "YYYY-MM"
+  satisfaction String? // Stored as string to match frontend "4.5"
+  manuals     String?  // Stored as string to match frontend "10"
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, month]) // Ensure one stat record per month per team
+}

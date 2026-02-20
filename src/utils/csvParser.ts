@@ -8,7 +8,25 @@ export const parseCSV = (file: File): Promise<Ticket[]> => {
             skipEmptyLines: 'greedy',
             transformHeader: (header: string) => header.trim(),
             complete: (results) => {
-                const cleanData = results.data.filter(row => row.ID);
+                console.log('[CSV Parser Debug] Meta:', results.meta);
+                if (results.data.length > 0) {
+                    console.log('[CSV Parser Debug] First row raw:', results.data[0]);
+                    console.log('[CSV Parser Debug] Keys:', Object.keys(results.data[0]));
+                }
+
+                // Flexible check for ID field to handle case variations or BOM issues
+                const cleanData = results.data.filter(row => {
+                    const r = row as any;
+                    return r.ID || r.id || r.Id || r['﻿ID']; // Handle potential BOM
+                });
+
+                console.log('[CSV Parser Debug] Raw rows:', results.data.length);
+                console.log('[CSV Parser Debug] Clean rows (with ID):', cleanData.length);
+
+                if (cleanData.length === 0 && results.data.length > 0) {
+                    console.warn('[CSV Parser Warning] No rows passed ID filter! Checking first row keys again:', Object.keys(results.data[0]));
+                }
+
                 resolve(cleanData);
             },
             error: (error: Error) => {
@@ -20,6 +38,13 @@ export const parseCSV = (file: File): Promise<Ticket[]> => {
 
 export const parseTicketDate = (dateStr: string): Date | null => {
     if (!dateStr) return null;
+
+    // Check if it's already an ISO string directly parseable
+    if (dateStr.includes('T') || dateStr.includes('-')) {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d;
+    }
+
     let date: Date | null = null;
 
     // Try parsing assuming DD/MM/YYYY first (common in Brazil)
@@ -27,7 +52,9 @@ export const parseTicketDate = (dateStr: string): Date | null => {
     if (parts.length >= 3) {
         // Check if first part is Year (YYYY)
         if (parts[0].length === 4) {
-            date = new Date(dateStr);
+            // YYYY-MM-DD
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) date = d;
         } else {
             // Assume DD/MM/YYYY
             const day = parseInt(parts[0], 10);
@@ -38,21 +65,18 @@ export const parseTicketDate = (dateStr: string): Date | null => {
                 date = new Date(year, month, day);
             }
         }
-    } else {
-        // Try standard Date parse
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) {
-            date = d;
-        }
     }
 
     if (date && !isNaN(date.getTime())) return date;
-    return null;
+
+    // Last resort
+    const d = new Date(dateStr);
+    return !isNaN(d.getTime()) ? d : null;
 };
 
 export const filterTicketsByMonth = (tickets: Ticket[], monthIndex: number): Ticket[] => {
     return tickets.filter(ticket => {
-        const dateStr = ticket["Data de abertura"];
+        const dateStr = ticket["Data de abertura"] || (ticket as any).dataAbertura;
         if (!dateStr) return false;
         const date = parseTicketDate(dateStr);
         return date && date.getMonth() === monthIndex;
@@ -63,7 +87,7 @@ export const filterTicketsByDateRange = (tickets: Ticket[], startDate: Date | nu
     if (!startDate && !endDate) return tickets;
 
     return tickets.filter(ticket => {
-        const dateStr = ticket["Data de abertura"];
+        const dateStr = ticket["Data de abertura"] || (ticket as any).dataAbertura;
         if (!dateStr) return false;
         const date = parseTicketDate(dateStr);
         if (!date) return false;
@@ -83,7 +107,7 @@ export const getOriginStats = (tickets: Ticket[]): OriginData[] => {
     const counts: Record<string, number> = {};
 
     tickets.forEach(ticket => {
-        const rawOrigin = ticket["Origem da requisição"];
+        const rawOrigin = ticket["Origem da requisição"] || (ticket as any).origem;
         if (rawOrigin) {
             const origin = rawOrigin.trim();
             counts[origin] = (counts[origin] || 0) + 1;
@@ -100,7 +124,7 @@ export const getCategoryStats = (tickets: Ticket[]): CategoryData[] => {
     const counts: Record<string, number> = {};
 
     tickets.forEach(ticket => {
-        const rawCategory = ticket["Categoria"];
+        const rawCategory = ticket["Categoria"] || (ticket as any).categoria;
         if (rawCategory) {
             const category = rawCategory.replace(/^SAJMP\s*>\s*/i, '').trim();
             if (category && category !== '-') {
@@ -128,7 +152,7 @@ export const getRequesterStats = (tickets: Ticket[]): RequesterData[] => {
     ].map(n => n.toLowerCase()));
 
     tickets.forEach(ticket => {
-        const rawRequester = ticket["Requerente - Requerente"];
+        const rawRequester = ticket["Requerente - Requerente"] || (ticket as any).requerente;
         if (rawRequester) {
             const requester = rawRequester.trim();
             if (requester && requester !== '-' && !excludedRequesters.has(requester.toLowerCase())) {
@@ -150,7 +174,23 @@ export const getHistoryStats = (tickets: Ticket[]): HistoryData[] => {
     const fullMonthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
     tickets.forEach(ticket => {
-        const date = parseTicketDate(ticket["Data de abertura"]);
+        const dateStr = ticket["Data de abertura"] || (ticket as any).dataAbertura;
+
+        // Tenta extrair mês direto da string se for ISO/YYYY-MM-DD para evitar problemas de fuso horário
+        // Ex: 2026-01-01T00:00:00.000Z -> Mês 01 (Janeiro)
+        // Se converter para Date, vira 31/12/2025 (Dezembro) no Brasil
+        if (dateStr && (dateStr.includes('-'))) {
+            const parts = dateStr.includes('T') ? dateStr.split('T')[0].split('-') : dateStr.split('-');
+            if (parts.length >= 2 && parts[0].length === 4) {
+                const monthIndex = parseInt(parts[1], 10) - 1;
+                if (!isNaN(monthIndex) && monthIndex >= 0 && monthIndex <= 11) {
+                    counts[monthIndex] = (counts[monthIndex] || 0) + 1;
+                    return;
+                }
+            }
+        }
+
+        const date = parseTicketDate(dateStr);
         if (date) {
             const monthIndex = date.getMonth();
             counts[monthIndex] = (counts[monthIndex] || 0) + 1;

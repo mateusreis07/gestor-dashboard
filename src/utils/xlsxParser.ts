@@ -27,6 +27,9 @@ export function parseXlsx(file: File): Promise<Chamado[]> {
                     return;
                 }
 
+                console.log('[XLSX Parser Debug] First row raw:', rows[0]);
+                console.log('[XLSX Parser Debug] Keys:', Object.keys(rows[0]));
+
                 const chamados: Chamado[] = rows.map((row) => ({
                     numeroChamado: String(row['Nº Chamado'] ?? row['N° Chamado'] ?? row['No Chamado'] ?? ''),
                     resumo: String(row['Resumo'] ?? ''),

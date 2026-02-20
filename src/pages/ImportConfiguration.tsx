@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { ArrowLeft, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Calendar, Trash } from 'lucide-react';
 import { parseCSV } from '../utils/csvParser';
 import { parseXlsx } from '../utils/xlsxParser';
-import { loadTeams, saveTeamTickets, saveTeamChamados, saveMonthData, loadMonthData } from '../utils/storage';
-import type { Team } from '../utils/types';
+import { saveTeamTickets, saveTeamChamados, saveMonthData, loadMonthData } from '../utils/storage';
+import { teamService } from '../services/teamService';
 
 export const ImportConfiguration: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  // O "time atual" é o usuário logado (ou o time selecionado pelo gestor via URL)
+  const resolvedTeamId = teamId || user?.id;
+  const teamName = user?.name || user?.email || 'Time';
 
-  // Status
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [stats, setStats] = useState<{ tickets: number; chamados: number }>({ tickets: 0, chamados: 0 });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  useEffect(() => {
-    const teams = loadTeams();
-    const team = teams.find(t => t.id === teamId);
-    if (team) {
-      setCurrentTeam(team);
-    } else {
-      navigate('/app/dashboard');
-    }
-  }, [teamId, navigate]);
-
   // Load stats for selected month when it changes
   useEffect(() => {
-    if (teamId && selectedMonth) {
-      const data = loadMonthData(teamId, selectedMonth);
+    if (resolvedTeamId && selectedMonth) {
+      const data = loadMonthData(resolvedTeamId, selectedMonth);
       if (data) {
         setStats({
           tickets: data.tickets?.length || 0,
@@ -41,7 +34,7 @@ export const ImportConfiguration: React.FC = () => {
         setStats({ tickets: 0, chamados: 0 });
       }
     }
-  }, [teamId, selectedMonth]);
+  }, [resolvedTeamId, selectedMonth]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
@@ -49,7 +42,7 @@ export const ImportConfiguration: React.FC = () => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'csv' | 'xlsx') => {
     const file = event.target.files?.[0];
-    if (!file || !currentTeam) return;
+    if (!file || !resolvedTeamId) return;
 
     setLoading(true);
     setMessage(null);
@@ -57,49 +50,86 @@ export const ImportConfiguration: React.FC = () => {
     try {
       if (type === 'csv') {
         const parsedTickets = await parseCSV(file);
+        console.log('[Import] Parsed tickets:', parsedTickets);
 
-        // Save to Month Data
-        saveMonthData(currentTeam.id, selectedMonth, { tickets: parsedTickets });
+        // 1. Salva no localStorage (compatibilidade com dashboard atual)
+        saveMonthData(resolvedTeamId, selectedMonth, { tickets: parsedTickets });
+        saveTeamTickets(resolvedTeamId, parsedTickets);
 
-        // Update Legacy/Current Store for immediate dashboard compatibility
-        saveTeamTickets(currentTeam.id, parsedTickets);
+        // 2. Persiste no banco via API
+        try {
+          await teamService.uploadTickets(resolvedTeamId, parsedTickets, selectedMonth);
+          setMessage({ type: 'success', text: `☁️ ${parsedTickets.length} tickets importados e salvos no banco para ${selectedMonth}.` });
+        } catch (apiErr) {
+          console.warn('API upload falhou, dados salvos localmente:', apiErr);
+          setMessage({ type: 'success', text: `⚠️ ${parsedTickets.length} tickets salvos localmente. Falha ao salvar no banco.` });
+        }
 
         setStats(prev => ({ ...prev, tickets: parsedTickets.length }));
-        setMessage({ type: 'success', text: `Sucesso! ${parsedTickets.length} tickets importados para ${selectedMonth}.` });
-      }
-      else if (type === 'xlsx') {
+      } else if (type === 'xlsx') {
         const parsedChamados = await parseXlsx(file);
+        console.log('[Import] Parsed chamados:', parsedChamados);
 
-        // Save to Month Data
-        saveMonthData(currentTeam.id, selectedMonth, { chamados: parsedChamados });
+        // 1. Salva no localStorage
+        saveMonthData(resolvedTeamId, selectedMonth, { chamados: parsedChamados });
+        saveTeamChamados(resolvedTeamId, new Date(selectedMonth).getMonth(), parsedChamados);
 
-        // Legacy Update
-        saveTeamChamados(currentTeam.id, new Date(selectedMonth).getMonth(), parsedChamados);
+        // 2. Persiste no banco via API
+        try {
+          await teamService.uploadChamados(resolvedTeamId, parsedChamados, selectedMonth);
+          setMessage({ type: 'success', text: `☁️ ${parsedChamados.length} chamados importados e salvos no banco para ${selectedMonth}.` });
+        } catch (apiErr) {
+          console.warn('API upload falhou, dados salvos localmente:', apiErr);
+          setMessage({ type: 'success', text: `⚠️ ${parsedChamados.length} chamados salvos localmente. Falha ao salvar no banco.` });
+        }
 
         setStats(prev => ({ ...prev, chamados: parsedChamados.length }));
-        setMessage({ type: 'success', text: `Sucesso! ${parsedChamados.length} chamados importados para ${selectedMonth}.` });
       }
     } catch (error) {
       console.error(error);
       setMessage({ type: 'error', text: 'Erro ao processar arquivo. Verifique o formato.' });
     } finally {
       setLoading(false);
-      // Reset input
       event.target.value = '';
     }
   };
 
-  if (!currentTeam) return <div>Carregando...</div>;
+  const handleReset = async () => {
+    if (!resolvedTeamId) return;
+    if (!window.confirm(`TEM CERTEZA? Isso apagará os dados de tickets e chamados do mês ${selectedMonth}. Se houver dados errados, isso ajudará a limpar.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await teamService.resetData(resolvedTeamId, selectedMonth);
+      setMessage({ type: 'success', text: `Dados de ${selectedMonth} limpos com sucesso. Importe novamente.` });
+      setStats({ tickets: 0, chamados: 0 });
+      // Limpar localStorage deste mês
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'Erro ao limpar dados.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!resolvedTeamId) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>Carregando...</div>;
+  }
 
   return (
     <div className="layout-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
-      <button onClick={() => navigate(`/app/dashboard/${teamId}`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginBottom: '24px' }}>
+      <button
+        onClick={() => navigate(`/app/team/${resolvedTeamId}`)}
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginBottom: '24px' }}
+      >
         <ArrowLeft size={20} /> Voltar ao Dashboard
       </button>
 
       <header style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Configuração de Importação</h1>
-        <p style={{ color: '#6b7280' }}>Gerencie os dados do time <strong>{currentTeam.name}</strong> por período.</p>
+        <p style={{ color: '#6b7280' }}>Gerencie os dados do time <strong>{teamName}</strong> por período.</p>
       </header>
 
       {/* MONTH SELECTION */}
@@ -117,10 +147,21 @@ export const ImportConfiguration: React.FC = () => {
               style={{
                 width: '100%', padding: '12px 12px 12px 42px',
                 fontSize: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1',
-                color: '#1e293b', fontWeight: 500
+                color: '#1e293b', fontWeight: 500, boxSizing: 'border-box'
               }}
             />
           </div>
+          <button
+            onClick={handleReset}
+            title={`Limpar dados de ${selectedMonth}`}
+            style={{
+              padding: '12px', borderRadius: '8px', border: '1px solid #fca5a5',
+              background: '#fee2e2', color: '#dc2626', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+          >
+            <Trash size={20} />
+          </button>
         </div>
         <div style={{ marginTop: '12px', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '24px' }}>
           <span>Dados salvos neste mês:</span>
@@ -148,8 +189,7 @@ export const ImportConfiguration: React.FC = () => {
           <label style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             background: '#2563eb', color: 'white', padding: '10px 20px',
-            borderRadius: '8px', fontWeight: 600, cursor: 'pointer',
-            transition: 'background 0.2s'
+            borderRadius: '8px', fontWeight: 600, cursor: 'pointer'
           }}>
             <input type="file" accept=".csv" onChange={(e) => handleFileUpload(e, 'csv')} style={{ display: 'none' }} disabled={loading} />
             {loading ? 'Processando...' : 'Selecionar Arquivo CSV'}
@@ -168,8 +208,7 @@ export const ImportConfiguration: React.FC = () => {
           <label style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             background: '#16a34a', color: 'white', padding: '10px 20px',
-            borderRadius: '8px', fontWeight: 600, cursor: 'pointer',
-            transition: 'background 0.2s'
+            borderRadius: '8px', fontWeight: 600, cursor: 'pointer'
           }}>
             <input type="file" accept=".xlsx, .xls" onChange={(e) => handleFileUpload(e, 'xlsx')} style={{ display: 'none' }} disabled={loading} />
             {loading ? 'Processando...' : 'Selecionar Arquivo XLSX'}
@@ -177,18 +216,23 @@ export const ImportConfiguration: React.FC = () => {
         </div>
       </div>
 
-      {message && (
-        <div style={{
-          marginTop: '24px', padding: '16px', borderRadius: '8px',
-          background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
-          border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
-          display: 'flex', alignItems: 'center', gap: '12px',
-          color: message.type === 'success' ? '#166534' : '#991b1b'
-        }}>
-          {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-          <span style={{ fontWeight: 500 }}>{message.text}</span>
-        </div>
-      )}
-    </div>
+
+
+
+      {
+        message && (
+          <div style={{
+            marginTop: '24px', padding: '16px', borderRadius: '8px',
+            background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+            display: 'flex', alignItems: 'center', gap: '12px',
+            color: message.type === 'success' ? '#166534' : '#991b1b'
+          }}>
+            {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+            <span style={{ fontWeight: 500 }}>{message.text}</span>
+          </div>
+        )
+      }
+    </div >
   );
 };

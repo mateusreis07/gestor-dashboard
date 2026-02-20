@@ -17,15 +17,19 @@ export function LoginPage() {
         e.preventDefault();
         setError('');
 
-        const success = await login(role, email, password);
-        if (success) {
-            if (role === 'manager') {
-                navigate('/app/overview');
-            } else {
-                navigate('/app/dashboard');
-            }
+        const loggedUser = await login(email, password);
+        console.log('[LOGIN] loggedUser retornado:', loggedUser);
+        console.log('[LOGIN] token no localStorage:', localStorage.getItem('token'));
+        console.log('[LOGIN] user no localStorage:', localStorage.getItem('user'));
+
+        if (loggedUser) {
+            const destino = loggedUser.role === 'MANAGER'
+                ? '/app/overview'
+                : `/app/team/${loggedUser.id}`;
+            console.log('[LOGIN] Navegando para:', destino);
+            window.location.href = destino;
         } else {
-            setError(role === 'manager' ? 'Credenciais inválidas.' : 'Credenciais de time inválidas.');
+            setError('E-mail ou senha inválidos. Verifique suas credenciais.');
         }
     };
 

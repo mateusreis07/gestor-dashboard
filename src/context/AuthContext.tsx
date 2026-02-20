@@ -1,124 +1,55 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { Manager, Team } from '../utils/types';
-import { loadManager, loadTeams, saveManager } from '../utils/storage';
-
-const SESSION_KEY = 'gestor_dashboard_session';
-
-interface SessionData {
-    role: 'manager' | 'team';
-    email: string;
-}
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { authService, type AuthUser } from '../services/authService';
 
 interface AuthContextType {
-    user: Manager | Team | null;
-    role: 'manager' | 'team' | null;
+    user: AuthUser | null;
+    role: 'MANAGER' | 'TEAM' | null;
     isAuthenticated: boolean;
-    isManagerConfigured: boolean;
     loading: boolean;
-    login: (role: 'manager' | 'team', email: string, password?: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<AuthUser | null>;
     logout: () => void;
-    setupManager: (manager: Manager) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function saveSession(role: 'manager' | 'team', email: string) {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role, email }));
-}
-
-function loadSession(): SessionData | null {
-    try {
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
-}
-
-function clearSession() {
-    sessionStorage.removeItem(SESSION_KEY);
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<Manager | Team | null>(null);
-    const [role, setRole] = useState<'manager' | 'team' | null>(null);
-    const [isManagerConfigured, setIsManagerConfigured] = useState(false);
-    const [loading, setLoading] = useState(true);
-
-    // Restore session on mount
-    useEffect(() => {
-        const manager = loadManager();
-        if (manager) {
-            setIsManagerConfigured(true);
+    // Inicialização SÍNCRONA: lê o usuário do localStorage imediatamente,
+    // sem esperar por um useEffect. Isso elimina a condição de corrida.
+    const [user, setUser] = useState<AuthUser | null>(() => {
+        const currentUser = authService.getCurrentUser();
+        if (currentUser && authService.isAuthenticated()) {
+            return currentUser;
         }
+        return null;
+    });
 
-        // Try to restore a previous session
-        const session = loadSession();
-        if (session) {
-            if (session.role === 'manager' && manager && manager.email === session.email) {
-                setUser(manager);
-                setRole('manager');
-            } else if (session.role === 'team') {
-                const teams = loadTeams();
-                const team = teams.find(t => t.email === session.email);
-                if (team) {
-                    setUser(team);
-                    setRole('team');
-                } else {
-                    clearSession();
-                }
-            } else {
-                clearSession();
-            }
+    // Sem loading state necessário — a inicialização é síncrona
+    const loading = false;
+
+    const login = async (email: string, password: string): Promise<AuthUser | null> => {
+        try {
+            const { user: loggedUser } = await authService.login({ email, password });
+            setUser(loggedUser);
+            return loggedUser;
+        } catch (error) {
+            console.error('Login failed:', error);
+            return null;
         }
-
-        setLoading(false);
-    }, []);
-
-    const login = async (selectedRole: 'manager' | 'team', email: string, password?: string) => {
-        if (selectedRole === 'manager') {
-            const manager = loadManager();
-            if (manager && manager.email === email && manager.password === password) {
-                setUser(manager);
-                setRole('manager');
-                saveSession('manager', email);
-                return true;
-            }
-        } else {
-            const teams = loadTeams();
-            const team = teams.find(t => t.email === email && (t.password === password || !t.password));
-            if (team) {
-                setUser(team);
-                setRole('team');
-                saveSession('team', email);
-                return true;
-            }
-        }
-        return false;
     };
 
     const logout = () => {
+        authService.logout();
         setUser(null);
-        setRole(null);
-        clearSession();
-    };
-
-    const setupManager = (manager: Manager) => {
-        saveManager(manager);
-        setIsManagerConfigured(true);
     };
 
     return (
         <AuthContext.Provider value={{
             user,
-            role,
+            role: user?.role ?? null,
             isAuthenticated: !!user,
-            isManagerConfigured,
             loading,
             login,
             logout,
-            setupManager
         }}>
             {children}
         </AuthContext.Provider>

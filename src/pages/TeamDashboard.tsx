@@ -17,7 +17,8 @@ import {
     parseTicketDate
 } from '../utils/csvParser';
 import { getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
-import { loadTeams, loadTeamTickets, saveTeamTickets, loadTeamChamados, getAvailableMonths, loadMonthData, saveMonthData } from '../utils/storage';
+import { getAvailableMonths, loadMonthData } from '../utils/storage';
+import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
 import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export function TeamDashboard() {
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [chamados, setChamados] = useState<Chamado[]>([]);
+    const [history, setHistory] = useState<number[]>([]);
 
 
     // Manual Stats State
@@ -39,55 +41,80 @@ export function TeamDashboard() {
     const [currentViewMonth, setCurrentViewMonth] = useState<string>('');
     const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
-    // Initial Data Load (Legacy + Months)
+    // Load Available Months on Mount
     useEffect(() => {
         if (!currentTeam) return;
 
-        // Load Manual Stats
-        const manual = localStorage.getItem(`gestor_team_stats_${currentTeam.id}`);
-        if (manual) setManualStats(JSON.parse(manual));
-
-        // Load Available Months
-        const months = getAvailableMonths(currentTeam.id);
-        setAvailableMonths(months);
-
-        if (months.length > 0) {
-            // Select latest month by default if none selected
-            if (!currentViewMonth) setCurrentViewMonth(months[0]);
-        } else {
-            // Fallback: Legacy Load (for backward compatibility if no months exist)
-            const t = loadTeamTickets(currentTeam.id);
-            setTickets(t);
-            const c = loadTeamChamados(currentTeam.id);
-            if (c) {
-                setChamados(c.chamados);
-
-            }
-        }
-    }, [currentTeam]); // Run when team is identified
-
-    // Load Data when Month Changes
-    useEffect(() => {
-        if (!currentTeam || !currentViewMonth) return;
-
-        const data = loadMonthData(currentTeam.id, currentViewMonth);
-        if (data) {
-            setTickets(data.tickets || []);
-            setChamados(data.chamados || []);
-
-            // Load Manual Stats for this month
-            if (data.manualStats) {
-                setManualStats(data.manualStats);
+        teamService.getDashboard(currentTeam.id).then(data => {
+            if (data.availableMonths && data.availableMonths.length > 0) {
+                setAvailableMonths(data.availableMonths);
+                // Select latest month by default if none selected
+                if (!currentViewMonth) setCurrentViewMonth(data.availableMonths[0]);
             } else {
+                // Se não tiver meses no banco, tenta carregar do localStorage como fallback (migração)
+                const localMonths = getAvailableMonths(currentTeam.id);
+                if (localMonths.length > 0) {
+                    setAvailableMonths(localMonths);
+                    if (!currentViewMonth) setCurrentViewMonth(localMonths[0]);
+                }
+            }
+        }).catch(err => console.error('Failed to load initial dashboard data', err));
+    }, [currentTeam]);
+
+    // Load Data when Month/Team Changes
+    useEffect(() => {
+        if (!currentTeam) return;
+
+        // Se tiver mês selecionado, busca filtrado da API
+        if (currentViewMonth) {
+            teamService.getDashboard(currentTeam.id, currentViewMonth).then(data => {
+                setTickets(data.tickets || []);
+                setChamados(data.chamados || []);
+                if (data.history) setHistory(data.history);
+
+                if (data.manualStats) {
+                    setManualStats({
+                        satisfaction: data.manualStats.satisfaction || '0',
+                        manuals: data.manualStats.manuals || '0'
+                    });
+                } else {
+                    setManualStats({ satisfaction: '0', manuals: '0' });
+                }
+            }).catch(console.error);
+        } else {
+            // Se não tiver mês (ex: time novo sem dados), ou fallback local
+            // Tenta carregar localmente caso a API falhe ou esteja vazia (legacy mode)
+            const localData = loadMonthData(currentTeam.id, currentViewMonth);
+            if (localData) {
+                setTickets(localData.tickets || []);
+                setChamados(localData.chamados || []);
+                if (localData.manualStats) setManualStats(localData.manualStats);
+            } else {
+                setTickets([]);
+                setChamados([]);
                 setManualStats({ satisfaction: '0', manuals: '0' });
             }
-        } else {
-            // New month with no data
-            setTickets([]);
-            setChamados([]);
-            setManualStats({ satisfaction: '0', manuals: '0' });
         }
     }, [currentViewMonth, currentTeam]);
+
+    // Save Manual Stats to API
+    const handleSaveStats = async () => {
+        if (!currentTeam || !currentViewMonth) return;
+
+        try {
+            await teamService.saveManualStats(
+                currentTeam.id,
+                currentViewMonth,
+                manualStats.satisfaction,
+                manualStats.manuals
+            );
+            setIsEditingStats(false);
+            // Dados salvos no banco com sucesso. O estado local manualStats já reflete a edição.
+        } catch (error) {
+            console.error('Failed to save stats', error);
+            alert('Erro ao salvar estatísticas. Tente novamente.');
+        }
+    };
 
     // New Date Range State
     const [startDate, setStartDate] = useState<Date | null>(null);
@@ -97,10 +124,11 @@ export function TeamDashboard() {
 
     // Load team data on mount or teamId change
     useEffect(() => {
-        const resolvedTeamId = teamId || (role === 'team' && user && 'id' in user ? user.id : null);
+        // Prioridade: teamId da URL, depois o ID do usuário logado (time)
+        const resolvedTeamId = teamId || (role === 'TEAM' && user ? user.id : null);
 
         if (!resolvedTeamId) {
-            if (role === 'manager') {
+            if (role === 'MANAGER') {
                 navigate('/app/overview');
             } else {
                 navigate('/welcome');
@@ -108,48 +136,30 @@ export function TeamDashboard() {
             return;
         }
 
-        const teams = loadTeams();
-        const team = teams.find(t => t.id === resolvedTeamId);
-
-        if (team) {
-            setCurrentTeam(team);
-        } else {
-            if (role === 'manager') {
-                navigate('/app/overview');
-            } else {
-                navigate('/welcome');
-            }
+        // Para o usuário TEAM logado, o "time" é ele mesmo
+        if (user && (role === 'TEAM' || resolvedTeamId === user.id)) {
+            setCurrentTeam({
+                id: user.id,
+                name: user.name || user.email,
+                email: user.email,
+                password: '',
+            } as any);
+            return;
         }
+
+        // Para o gestor visualizando um time específico, busca via API
+        import('../services/teamService').then(({ managerTeamsService }) => {
+            managerTeamsService.listTeams().then(teams => {
+                const team = teams.find(t => t.id === resolvedTeamId);
+                if (team) {
+                    setCurrentTeam({ ...team, password: '' } as any);
+                } else {
+                    navigate('/app/manager');
+                }
+            }).catch(() => navigate('/app/manager'));
+        });
     }, [teamId, navigate, role, user]);
 
-    // Save tickets when they change (only for team role)
-    useEffect(() => {
-        if (currentTeam && role === 'team' && tickets.length > 0) {
-            // Only autosave to legacy if not using month view?
-            // Actually, we should probably stop autosaving tickets to the global key here
-            // if we are fully committed to month view to avoid overwriting legacy with partial data.
-            // But to keep it simple and safe for now:
-            saveTeamTickets(currentTeam.id, tickets);
-
-            // Also save to month data if we are in a month view
-            if (currentViewMonth) {
-                saveMonthData(currentTeam.id, currentViewMonth, { tickets });
-            }
-        }
-    }, [tickets, currentTeam, role, currentViewMonth]);
-
-    const saveManualStats = () => {
-        if (currentTeam) {
-            if (currentViewMonth) {
-                // Save to Month Data
-                saveMonthData(currentTeam.id, currentViewMonth, { manualStats });
-            } else {
-                // Fallback (Global)
-                localStorage.setItem(`gestor_team_stats_${currentTeam.id}`, JSON.stringify(manualStats));
-            }
-            setIsEditingStats(false);
-        }
-    };
 
     // --- Data Processing ---
     const filteredTickets = useMemo(() => {
@@ -159,7 +169,20 @@ export function TeamDashboard() {
     const originData = useMemo(() => getOriginStats(filteredTickets), [filteredTickets]);
     const categoryData = useMemo(() => getCategoryStats(filteredTickets), [filteredTickets]);
     const requesterData = useMemo(() => getRequesterStats(filteredTickets), [filteredTickets]);
-    const historyData = useMemo(() => getHistoryStats(tickets), [tickets]);
+
+    const historyData = useMemo(() => {
+        if (history && history.length > 0 && history.some(v => v > 0)) {
+            const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+            const fullMonthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            return history.map((count, index) => ({
+                name: monthNames[index],
+                value: count,
+                fullLabel: fullMonthNames[index],
+                order: index
+            }));
+        }
+        return getHistoryStats(tickets);
+    }, [history, tickets]);
 
     // --- Chamados XLSX Data ---
     const showChamados = chamados.length > 0;
@@ -174,7 +197,7 @@ export function TeamDashboard() {
     // --- Handlers ---
 
     const handleBack = () => {
-        if (role === 'manager') {
+        if (role === 'MANAGER') {
             navigate('/app/overview');
         } else {
             logout();
@@ -259,7 +282,7 @@ export function TeamDashboard() {
                 }}>
                     {/* Left: Identity */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        {role === 'manager' && (
+                        {role === 'MANAGER' && (
                             <button onClick={handleBack} className="icon-btn-ghost">
                                 <ArrowLeft size={20} color="#6b7280" />
                             </button>
@@ -280,7 +303,7 @@ export function TeamDashboard() {
                                     color: '#64748b', textTransform: 'uppercase',
                                     background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
                                 }}>
-                                    {role === 'manager' ? 'Portal do Gestor' : 'Portal do Time'}
+                                    {role === 'MANAGER' ? 'Portal do Gestor' : 'Portal do Time'}
                                 </span>
                             </div>
                             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
@@ -291,7 +314,7 @@ export function TeamDashboard() {
 
                     {/* Right: Actions */}
                     {/* Right: Actions */}
-                    {role === 'team' && (
+                    {role === 'TEAM' && (
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button
                                 onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
@@ -422,7 +445,7 @@ export function TeamDashboard() {
                         display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
                         position: 'relative'
                     }}>
-                        {role === 'team' && (
+                        {role === 'TEAM' && (
                             <button
                                 onClick={() => setIsEditingStats(true)}
                                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
@@ -469,7 +492,7 @@ export function TeamDashboard() {
                         display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
                         position: 'relative'
                     }}>
-                        {role === 'team' && (
+                        {role === 'TEAM' && (
                             <button
                                 onClick={() => setIsEditingStats(true)}
                                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
@@ -537,7 +560,7 @@ export function TeamDashboard() {
                                     Cancelar
                                 </button>
                                 <button
-                                    onClick={saveManualStats}
+                                    onClick={handleSaveStats}
                                     style={{
                                         background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px',
                                         padding: '8px 24px', fontWeight: 600, cursor: 'pointer',
@@ -554,7 +577,7 @@ export function TeamDashboard() {
                 {/* EMPTY STATE */}
                 {tickets.length === 0 && chamados.length === 0 && (
                     <div className="upload-section">
-                        {role === 'team' ? (
+                        {role === 'TEAM' ? (
                             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                                 <h3>Nenhum dado importado ainda.</h3>
                                 <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>

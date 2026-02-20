@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function RootRedirect() {
-    const { isAuthenticated, isManagerConfigured, role, user, loading } = useAuth();
+    const { isAuthenticated, role, user, loading } = useAuth();
 
     if (loading) {
         return (
@@ -12,20 +12,15 @@ export function RootRedirect() {
         );
     }
 
-    // If no manager is configured yet, go to setup
-    if (!isManagerConfigured) {
-        return <Navigate to="/setup" replace />;
-    }
-
-    // If authenticated, redirect to appropriate dashboard
+    // Se autenticado, redireciona para o dashboard correto
     if (isAuthenticated) {
-        if (role === 'manager') {
+        if (role === 'MANAGER') {
             return <Navigate to="/app/overview" replace />;
-        } else if (role === 'team' && user && 'id' in user) {
+        } else if (role === 'TEAM' && user) {
             return <Navigate to={`/app/team/${user.id}`} replace />;
         }
     }
 
-    // Default: go to welcome/landing page
+    // Padrão: vai para a tela de boas-vindas/login
     return <Navigate to="/welcome" replace />;
 }
