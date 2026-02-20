@@ -1,6 +1,5 @@
 import * as XLSX from 'xlsx';
 import type { Chamado } from './types';
-import { parseTicketDate } from './csvParser';
 
 /**
  * Parse an .xlsx file and extract Chamado data.
@@ -60,20 +59,29 @@ export function parseXlsx(file: File): Promise<Chamado[]> {
 export function filterChamadosByDateRange(chamados: Chamado[], startDate: Date | null, endDate: Date | null): Chamado[] {
     if (!startDate && !endDate) return chamados;
 
+    const startStr = startDate ? `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}` : null;
+    const endStr = endDate ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}` : null;
+
+
     return chamados.filter(chamado => {
         const dateStr = chamado.criado;
         if (!dateStr) return false;
 
-        const date = parseTicketDate(dateStr);
-        if (!date) return false;
+        let chamadoIsoStr = "";
+        if (dateStr.includes('T')) {
+            chamadoIsoStr = dateStr.split('T')[0];
+        } else {
+            const parts = dateStr.split(/[-/ ]/);
+            if (parts.length >= 3) {
+                if (parts[0].length === 4) chamadoIsoStr = `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                else chamadoIsoStr = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+            }
+        }
 
-        // Reset times to compare dates only
-        const d = new Date(date).setHours(0, 0, 0, 0);
-        const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
-        const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+        if (!chamadoIsoStr) return false;
 
-        if (start && d < start) return false;
-        if (end && d > end) return false;
+        if (startStr && chamadoIsoStr < startStr) return false;
+        if (endStr && chamadoIsoStr > endStr) return false;
 
         return true;
     });

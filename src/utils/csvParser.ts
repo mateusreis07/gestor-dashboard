@@ -86,19 +86,28 @@ export const filterTicketsByMonth = (tickets: Ticket[], monthIndex: number): Tic
 export const filterTicketsByDateRange = (tickets: Ticket[], startDate: Date | null, endDate: Date | null): Ticket[] => {
     if (!startDate && !endDate) return tickets;
 
+    const startStr = startDate ? `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}` : null;
+    const endStr = endDate ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}` : null;
+
     return tickets.filter(ticket => {
         const dateStr = ticket["Data de abertura"] || (ticket as any).dataAbertura;
         if (!dateStr) return false;
-        const date = parseTicketDate(dateStr);
-        if (!date) return false;
 
-        // Reset times to compare dates only
-        const d = new Date(date).setHours(0, 0, 0, 0);
-        const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
-        const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+        let ticketIsoStr = "";
+        if (dateStr.includes('T')) {
+            ticketIsoStr = dateStr.split('T')[0];
+        } else {
+            const parts = dateStr.split(/[-/ ]/);
+            if (parts.length >= 3) {
+                if (parts[0].length === 4) ticketIsoStr = `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                else ticketIsoStr = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+            }
+        }
 
-        if (start && d < start) return false;
-        if (end && d > end) return false;
+        if (!ticketIsoStr) return false;
+
+        if (startStr && ticketIsoStr < startStr) return false;
+        if (endStr && ticketIsoStr > endStr) return false;
         return true;
     });
 };
