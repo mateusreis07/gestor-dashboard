@@ -458,6 +458,12 @@ export function TeamDashboard() {
                         background: #e2e8f0;
                     }
 
+                    .layout-container {
+                        padding: 32px 48px;
+                        max-width: 1600px;
+                        margin: 0 auto;
+                    }
+
                     @media (max-width: 768px) {
                         .desktop-only { display: none; }
                         .layout-container { padding: 16px; }
