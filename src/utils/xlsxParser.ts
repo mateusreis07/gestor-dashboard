@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { Chamado } from './types';
+import { parseTicketDate } from './csvParser';
 
 /**
  * Parse an .xlsx file and extract Chamado data.
@@ -53,6 +54,28 @@ export function parseXlsx(file: File): Promise<Chamado[]> {
 
         reader.onerror = () => reject(new Error('Erro ao ler o arquivo.'));
         reader.readAsArrayBuffer(file);
+    });
+}
+
+export function filterChamadosByDateRange(chamados: Chamado[], startDate: Date | null, endDate: Date | null): Chamado[] {
+    if (!startDate && !endDate) return chamados;
+
+    return chamados.filter(chamado => {
+        const dateStr = chamado.criado;
+        if (!dateStr) return false;
+
+        const date = parseTicketDate(dateStr);
+        if (!date) return false;
+
+        // Reset times to compare dates only
+        const d = new Date(date).setHours(0, 0, 0, 0);
+        const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
+        const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+
+        return true;
     });
 }
 

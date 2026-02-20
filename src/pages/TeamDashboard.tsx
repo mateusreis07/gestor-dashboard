@@ -16,7 +16,7 @@ import {
     filterTicketsByDateRange,
     parseTicketDate
 } from '../utils/csvParser';
-import { getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
+import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } from '../utils/xlsxParser';
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
@@ -213,9 +213,8 @@ export function TeamDashboard() {
     // --- Chamados XLSX Data ---
     const showChamados = chamados.length > 0;
     const filteredChamados = useMemo(() => {
-        // Currently not filtering chamados by date range as 'criado' field is string
-        return chamados;
-    }, [chamados]);
+        return filterChamadosByDateRange(chamados, startDate, endDate);
+    }, [chamados, startDate, endDate]);
 
     const statusData = useMemo(() => getStatusStats(filteredChamados), [filteredChamados]);
     const funcData = useMemo(() => getFuncionalidadeStats(filteredChamados), [filteredChamados]);
@@ -237,14 +236,22 @@ export function TeamDashboard() {
 
     // Find the latest date in the dataset to use as anchor for "Latest" filters
     const lastDataDate = useMemo(() => {
-        if (tickets.length === 0) return new Date();
+        if (tickets.length === 0 && chamados.length === 0) return new Date();
         let max = 0;
+
         tickets.forEach(t => {
-            const d = parseTicketDate(t["Data de abertura"]);
+            const dateStr = t["Data de abertura"] || (t as any).dataAbertura;
+            const d = parseTicketDate(dateStr);
             if (d && d.getTime() > max) max = d.getTime();
         });
+
+        chamados.forEach(c => {
+            const d = parseTicketDate(c.criado);
+            if (d && d.getTime() > max) max = d.getTime();
+        });
+
         return max > 0 ? new Date(max) : new Date();
-    }, [tickets]);
+    }, [tickets, chamados]);
 
     const setLastWeek = () => {
         const end = new Date(lastDataDate);
