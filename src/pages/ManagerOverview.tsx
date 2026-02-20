@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loadTeams, loadTeamTickets } from '../utils/storage';
+import { managerTeamsService } from '../services/teamService';
 import type { Team } from '../utils/types';
 import { LogOut, Settings, Users, BarChart3, ChevronRight, Plus } from 'lucide-react';
 import styles from './ManagerOverview.module.css';
@@ -14,14 +15,40 @@ export function ManagerOverview() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [teams, setTeams] = useState<TeamWithStats[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const rawTeams = loadTeams();
-        const teamsWithStats: TeamWithStats[] = rawTeams.map(team => {
-            const tickets = loadTeamTickets(team.id);
-            return { ...team, ticketCount: tickets.length };
-        });
-        setTeams(teamsWithStats);
+        const fetchTeams = async () => {
+            setIsLoading(true);
+            try {
+                // Tenta puxar do banco real
+                const apiTeams = await managerTeamsService.listTeams();
+
+                // Monta array populando com tickets do localStorage de cada um
+                const teamsWithStats: TeamWithStats[] = apiTeams.map(team => {
+                    const tickets = loadTeamTickets(team.id);
+                    return {
+                        ...team,
+                        createdAt: typeof team.createdAt === 'string' ? new Date(team.createdAt).getTime() : team.createdAt,
+                        ticketCount: tickets.length
+                    } as TeamWithStats;
+                });
+                setTeams(teamsWithStats);
+            } catch (error) {
+                console.error('Failed to load teams from API, falling back to localStorage:', error);
+                // Fallback de segurança para modo offline
+                const rawTeams = loadTeams();
+                const teamsWithStats: TeamWithStats[] = rawTeams.map(team => {
+                    const tickets = loadTeamTickets(team.id);
+                    return { ...team, ticketCount: tickets.length };
+                });
+                setTeams(teamsWithStats);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTeams();
     }, []);
 
     const handleLogout = () => {
@@ -86,7 +113,12 @@ export function ManagerOverview() {
                     </div>
                 </div>
 
-                {teams.length === 0 ? (
+                {isLoading ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', padding: '24px' }}>
+                        <div style={{ height: '140px', background: '#e2e8f0', borderRadius: '16px', animation: 'pulse 1.5s infinite' }}></div>
+                        <div style={{ height: '140px', background: '#e2e8f0', borderRadius: '16px', animation: 'pulse 1.5s infinite' }}></div>
+                    </div>
+                ) : teams.length === 0 ? (
                     <div className={styles.emptyState}>
                         <div className={styles.emptyIcon}>
                             <Users size={48} strokeWidth={1.2} />
