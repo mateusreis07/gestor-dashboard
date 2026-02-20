@@ -38,7 +38,7 @@ const PALETTE = [
     '#3f6600', // Olive
 ];
 
-const DEFAULT_COLOR = '#d9d9d9'; // Only used for inactive state dimming
+
 
 export function OriginChart({ data }: Props) {
     const [activeName, setActiveName] = useState<string | null>(null);
