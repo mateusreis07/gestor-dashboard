@@ -162,46 +162,53 @@ export const saveManualStats = async (req: Request, res: Response) => {
   }
 };
 
-// Helper para converter data DD/MM/YYYY HH:mm ou DD/MM/YYYY para ISO
-const formatDateToISO = (dateStr: string): string => {
-  if (!dateStr) return new Date().toISOString();
+// Helper para converter data DD/MM/YYYY HH:mm ou MM/DD/YY para ISO
+const formatDateToISO = (dateStr: string, fallbackMonth?: string): string => {
+  const defaultFallback = fallbackMonth ? `${fallbackMonth}-01T00:00:00.000Z` : new Date().toISOString();
 
-  // Se já for ISO (contém - e parece ano no começo), retorna
+  if (!dateStr) return defaultFallback;
+
+  // Se já for ISO e válido
   if (dateStr.includes('-') && (dateStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dateStr))) return dateStr;
 
   try {
-    // Tenta formato BR: dd/mm/yyyy ou dd-mm-yyyy
-    // Primeiro remove a hora se houver
-    const datePart = dateStr.split(' ')[0];
+    const datePart = dateStr.trim().split(' ')[0];
     const parts = datePart.includes('/') ? datePart.split('/') : datePart.split('-');
 
     if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const year = parseInt(parts[2], 10);
-      const d = new Date(year, month, day);
+      const p0 = parseInt(parts[0], 10);
+      const p1 = parseInt(parts[1], 10);
+      let year = parseInt(parts[2], 10);
 
-      // Valida se a data é válida
-      if (isNaN(d.getTime())) {
-        console.warn('Data inválida gerada:', dateStr);
-        return new Date().toISOString();
+      // Correção de ano de 2 dígitos (ex: 24 -> 2024, 25 -> 2025)
+      if (year >= 0 && year < 100) {
+        year += 2000;
       }
 
-      // Ajusta para UTC ou mantém local? new Date(y,m,d) cria local.
-      // toISOString() converte para UTC.
-      // Para consistência de prefixo YYYY-MM, toISOString é seguro se o fuso não mudar o mês.
-      // Melhor garantir YYYY-MM-DD via string template para evitar problemas de fuso convertendo dia 01 apra dia 30 anterior.
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}T00:00:00.000Z`;
+      let day = 1, month = 0; // fallback values
+
+      // Identifica formato DD/MM/YYYY vs MM/DD/YYYY dinamicamente
+      if (p0 > 12) {
+        day = p0; month = p1 - 1;
+      } else if (p1 > 12) {
+        month = p0 - 1; day = p1;
+      } else {
+        // Assume DD/MM (Padrão BR) se ambos forem <= 12
+        day = p0; month = p1 - 1;
+      }
+
+      const d = new Date(Date.UTC(year, month, day)); // UTC evita problemas de timezone shift
+
+      if (!isNaN(d.getTime())) {
+        return d.toISOString();
+      }
     }
   } catch (e) {
     console.warn('Falha ao converter data:', dateStr);
   }
 
-  // Fallback
-  return new Date().toISOString();
+  // Fallback para o mês selecionado caso não consiga parsear
+  return defaultFallback;
 };
 
 export const uploadData = async (req: Request, res: Response) => {
@@ -231,7 +238,7 @@ export const uploadData = async (req: Request, res: Response) => {
         originalId: String(t['ID'] || t['id'] || t['originalId'] || ''),
         titulo: String(t['Título'] || t['titulo'] || 'Sem Título'),
         status: String(t['Status'] || t['status'] || 'Desconhecido'),
-        dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || '')),
+        dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || ''), month),
         requerente: String(t['Requerente - Requerente'] || t['requerente'] || ''),
         tecnico: String(t['Atribuído - Técnico'] || t['tecnico'] || ''),
         categoria: String(t['Categoria'] || t['categoria'] || ''),
@@ -262,7 +269,7 @@ export const uploadData = async (req: Request, res: Response) => {
         numeroChamado: String(c['Numero'] || c['numeroChamado'] || ''),
         resumo: String(c['Resumo'] || c['resumo'] || ''),
         statusChamado: String(c['Status'] || c['statusChamado'] || 'Aberto'),
-        criado: formatDateToISO(String(c['Criado'] || c['criado'] || '')),
+        criado: formatDateToISO(String(c['Criado'] || c['criado'] || ''), month),
         fimDoPrazo: String(c['Fim do prazo'] || c['fimDoPrazo'] || ''),
         prazoAjustado: String(c['Prazo ajustado'] || c['prazoAjustado'] || ''),
         relator: String(c['Relator'] || c['relator'] || ''),
