@@ -80,7 +80,16 @@ export function TeamDashboard() {
                 } else {
                     setManualStats({ satisfaction: '0', manuals: '0' });
                 }
-            }).catch(console.error);
+            }).catch(err => {
+                console.error('API getDashboard failed, using localStorage fallback:', err);
+                // Fallback: carregar dados do localStorage quando API falha
+                const localData = loadMonthData(currentTeam.id, currentViewMonth);
+                if (localData) {
+                    setTickets(localData.tickets || []);
+                    setChamados(localData.chamados || []);
+                    if (localData.manualStats) setManualStats(localData.manualStats);
+                }
+            });
         } else {
             // Se não tiver mês (ex: time novo sem dados), ou fallback local
             // Tenta carregar localmente caso a API falhe ou esteja vazia (legacy mode)
