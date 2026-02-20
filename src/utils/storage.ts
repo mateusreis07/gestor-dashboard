@@ -169,7 +169,11 @@ export const loadTeamTickets = (teamId: string): Ticket[] => {
 };
 
 export const saveTeamTickets = (teamId: string, tickets: Ticket[]) => {
-    localStorage.setItem(`${TICKETS_KEY_PREFIX}${teamId}`, JSON.stringify(tickets));
+    try {
+        localStorage.setItem(`${TICKETS_KEY_PREFIX}${teamId}`, JSON.stringify(tickets));
+    } catch (error) {
+        console.warn('Failed to save team tickets (legacy) - Storage full', error);
+    }
 };
 
 export const loadTeamChamados = (teamId: string): any => {
@@ -181,8 +185,12 @@ export const loadTeamChamados = (teamId: string): any => {
 };
 
 export const saveTeamChamados = (teamId: string, month: number, chamados: Chamado[]) => {
-    const data = { month, chamados };
-    localStorage.setItem(`${CHAMADOS_KEY_PREFIX}${teamId}`, JSON.stringify(data));
+    try {
+        const data = { month, chamados };
+        localStorage.setItem(`${CHAMADOS_KEY_PREFIX}${teamId}`, JSON.stringify(data));
+    } catch (error) {
+        console.warn('Failed to save team chamados (legacy) - Storage full', error);
+    }
 };
 
 export const clearTeamTickets = (teamId: string) => localStorage.removeItem(`${TICKETS_KEY_PREFIX}${teamId}`);
