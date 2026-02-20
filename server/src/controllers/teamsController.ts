@@ -77,11 +77,13 @@ export const deleteTeam = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
 
-    // Deletar em cascata (tickets, chamados, stats)
-    await prisma.ticket.deleteMany({ where: { userId: id } });
-    await prisma.chamado.deleteMany({ where: { userId: id } });
-    await prisma.monthlyData.deleteMany({ where: { userId: id } });
-    await prisma.user.delete({ where: { id } });
+    // Transaction para garantir atomicidade: ou apaga tudo ou nada
+    await prisma.$transaction([
+      prisma.ticket.deleteMany({ where: { userId: id } }),
+      prisma.chamado.deleteMany({ where: { userId: id } }),
+      prisma.monthlyData.deleteMany({ where: { userId: id } }),
+      prisma.user.delete({ where: { id } })
+    ]);
 
     res.json({ success: true });
   } catch (error) {
