@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:server && tsc -b && vite build",
-    "build:server": "cd server && npm install && npm run build",
-    "postinstall": "cd server && npm install",
+    "build:server": "cd server && npm install && npx prisma generate && npm run build",
+    "postinstall": "cd server && npm install && npx prisma generate",
     "lint": "eslint .",
     "preview": "vite preview"
   },

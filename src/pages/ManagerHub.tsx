@@ -86,7 +86,13 @@ export function ManagerHub() {
             setShowForm(false);
             await loadTeams();
         } catch (err: any) {
-            setFormError(err?.response?.data?.error || 'Erro ao salvar time. Tente novamente.');
+            console.error('Detailed API Error:', err.response?.data || err);
+            // Garantir que formError é SEMPRE uma string (nunca um objeto)
+            const rawError = err?.response?.data?.error || err?.response?.data?.message || err?.message;
+            const errorMsg = typeof rawError === 'string'
+                ? rawError
+                : (rawError ? JSON.stringify(rawError) : 'Erro ao salvar time. Verifique sua conexão.');
+            setFormError(errorMsg);
         } finally {
             setSaving(false);
         }
