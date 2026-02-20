@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { RootRedirect } from './pages/RootRedirect';
@@ -10,13 +10,15 @@ import { ManagerOverview } from './pages/ManagerOverview';
 import { TeamDashboard } from './pages/TeamDashboard';
 import './App.css';
 
+import { ImportConfiguration } from './pages/ImportConfiguration';
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<Navigate to="/welcome" replace />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/setup" element={<Setup />} />
           <Route path="/login/:role" element={<LoginPage />} />
@@ -35,6 +37,11 @@ function App() {
           <Route path="/app/team/:teamId" element={
             <ProtectedRoute>
               <TeamDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/app/team/:teamId/import" element={
+            <ProtectedRoute>
+              <ImportConfiguration />
             </ProtectedRoute>
           } />
           <Route path="/app/dashboard" element={

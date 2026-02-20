@@ -1,31 +1,25 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FileUpload } from '../components/Upload/FileUpload';
 import { OriginChart } from '../components/Dashboard/OriginChart';
 import { CategoryChart } from '../components/Dashboard/CategoryChart';
 import { RequesterChart } from '../components/Dashboard/RequesterChart';
 import { HistoryChart } from '../components/Dashboard/HistoryChart';
 import { StatusChart } from '../components/Dashboard/StatusChart';
 import { FuncionalidadeChart } from '../components/Dashboard/FuncionalidadeChart';
+import { StatusDetailsModal } from '../components/Dashboard/StatusDetailsModal';
 import {
-    parseCSV,
     getOriginStats,
     getCategoryStats,
     getRequesterStats,
     getHistoryStats,
-    filterTicketsByMonth,
+    filterTicketsByDateRange,
     parseTicketDate
 } from '../utils/csvParser';
-import { parseXlsx, getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
-import { loadTeams, loadTeamTickets, saveTeamTickets, clearTeamTickets, loadTeamChamados, saveTeamChamados, clearTeamChamados } from '../utils/storage';
+import { getStatusStats, getFuncionalidadeStats } from '../utils/xlsxParser';
+import { loadTeams, loadTeamTickets, saveTeamTickets, loadTeamChamados, getAvailableMonths, loadMonthData, saveMonthData } from '../utils/storage';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Users, Upload, Calendar, Trash2, FileSpreadsheet, ClipboardList } from 'lucide-react';
-
-const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings } from 'lucide-react';
 
 export function TeamDashboard() {
     const { teamId } = useParams<{ teamId: string }>();
@@ -35,13 +29,74 @@ export function TeamDashboard() {
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [chamados, setChamados] = useState<Chamado[]>([]);
-    const [chamadosMonth, setChamadosMonth] = useState<number | null>(null);
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-    const [loading, setLoading] = useState(false);
+
+
+    // Manual Stats State
+    const [manualStats, setManualStats] = useState({ satisfaction: '0', manuals: '0' });
+    const [isEditingStats, setIsEditingStats] = useState(false);
+
+    // Month Based View State
+    const [currentViewMonth, setCurrentViewMonth] = useState<string>('');
+    const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+
+    // Initial Data Load (Legacy + Months)
+    useEffect(() => {
+        if (!currentTeam) return;
+
+        // Load Manual Stats
+        const manual = localStorage.getItem(`gestor_team_stats_${currentTeam.id}`);
+        if (manual) setManualStats(JSON.parse(manual));
+
+        // Load Available Months
+        const months = getAvailableMonths(currentTeam.id);
+        setAvailableMonths(months);
+
+        if (months.length > 0) {
+            // Select latest month by default if none selected
+            if (!currentViewMonth) setCurrentViewMonth(months[0]);
+        } else {
+            // Fallback: Legacy Load (for backward compatibility if no months exist)
+            const t = loadTeamTickets(currentTeam.id);
+            setTickets(t);
+            const c = loadTeamChamados(currentTeam.id);
+            if (c) {
+                setChamados(c.chamados);
+
+            }
+        }
+    }, [currentTeam]); // Run when team is identified
+
+    // Load Data when Month Changes
+    useEffect(() => {
+        if (!currentTeam || !currentViewMonth) return;
+
+        const data = loadMonthData(currentTeam.id, currentViewMonth);
+        if (data) {
+            setTickets(data.tickets || []);
+            setChamados(data.chamados || []);
+
+            // Load Manual Stats for this month
+            if (data.manualStats) {
+                setManualStats(data.manualStats);
+            } else {
+                setManualStats({ satisfaction: '0', manuals: '0' });
+            }
+        } else {
+            // New month with no data
+            setTickets([]);
+            setChamados([]);
+            setManualStats({ satisfaction: '0', manuals: '0' });
+        }
+    }, [currentViewMonth, currentTeam]);
+
+    // New Date Range State
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
     // Load team data on mount or teamId change
     useEffect(() => {
-        // If no teamId in URL, try to derive it from the logged-in user
         const resolvedTeamId = teamId || (role === 'team' && user && 'id' in user ? user.id : null);
 
         if (!resolvedTeamId) {
@@ -58,13 +113,6 @@ export function TeamDashboard() {
 
         if (team) {
             setCurrentTeam(team);
-            const teamTickets = loadTeamTickets(team.id);
-            setTickets(teamTickets);
-            const chamadosData = loadTeamChamados(team.id);
-            if (chamadosData) {
-                setChamados(chamadosData.chamados);
-                setChamadosMonth(chamadosData.month);
-            }
         } else {
             if (role === 'manager') {
                 navigate('/app/overview');
@@ -76,103 +124,54 @@ export function TeamDashboard() {
 
     // Save tickets when they change (only for team role)
     useEffect(() => {
-        if (currentTeam && role === 'team') {
+        if (currentTeam && role === 'team' && tickets.length > 0) {
+            // Only autosave to legacy if not using month view?
+            // Actually, we should probably stop autosaving tickets to the global key here
+            // if we are fully committed to month view to avoid overwriting legacy with partial data.
+            // But to keep it simple and safe for now:
             saveTeamTickets(currentTeam.id, tickets);
+
+            // Also save to month data if we are in a month view
+            if (currentViewMonth) {
+                saveMonthData(currentTeam.id, currentViewMonth, { tickets });
+            }
         }
-    }, [tickets, currentTeam, role]);
+    }, [tickets, currentTeam, role, currentViewMonth]);
+
+    const saveManualStats = () => {
+        if (currentTeam) {
+            if (currentViewMonth) {
+                // Save to Month Data
+                saveMonthData(currentTeam.id, currentViewMonth, { manualStats });
+            } else {
+                // Fallback (Global)
+                localStorage.setItem(`gestor_team_stats_${currentTeam.id}`, JSON.stringify(manualStats));
+            }
+            setIsEditingStats(false);
+        }
+    };
 
     // --- Data Processing ---
     const filteredTickets = useMemo(() => {
-        if (selectedMonth === null) return tickets;
-        return filterTicketsByMonth(tickets, selectedMonth);
-    }, [tickets, selectedMonth]);
+        return filterTicketsByDateRange(tickets, startDate, endDate);
+    }, [tickets, startDate, endDate]);
 
     const originData = useMemo(() => getOriginStats(filteredTickets), [filteredTickets]);
     const categoryData = useMemo(() => getCategoryStats(filteredTickets), [filteredTickets]);
     const requesterData = useMemo(() => getRequesterStats(filteredTickets), [filteredTickets]);
     const historyData = useMemo(() => getHistoryStats(tickets), [tickets]);
 
-    // --- Chamados XLSX Data (only visible for the import month) ---
-    const showChamados = chamados.length > 0 && (selectedMonth === null || selectedMonth === chamadosMonth);
-    const statusData = useMemo(() => getStatusStats(chamados), [chamados]);
-    const funcData = useMemo(() => getFuncionalidadeStats(chamados), [chamados]);
+    // --- Chamados XLSX Data ---
+    const showChamados = chamados.length > 0;
+    const filteredChamados = useMemo(() => {
+        // Currently not filtering chamados by date range as 'criado' field is string
+        return chamados;
+    }, [chamados]);
+
+    const statusData = useMemo(() => getStatusStats(filteredChamados), [filteredChamados]);
+    const funcData = useMemo(() => getFuncionalidadeStats(filteredChamados), [filteredChamados]);
 
     // --- Handlers ---
-    const handleFileSelect = async (file: File) => {
-        if (role !== 'team') return;
-        if (!currentTeam) return;
-
-        setLoading(true);
-        try {
-            const newTickets = await parseCSV(file);
-
-            let detectedMonth: number | null = null;
-            if (newTickets.length > 0) {
-                const firstDate = parseTicketDate(newTickets[0]["Data de abertura"]);
-                if (firstDate) detectedMonth = firstDate.getMonth();
-            }
-
-            if (selectedMonth !== null && detectedMonth !== null && selectedMonth !== detectedMonth) {
-                if (!confirm(`Atenção: Você selecionou "${months[selectedMonth]}" mas o arquivo parece conter dados de "${months[detectedMonth]}". Deseja importar mesmo assim?`)) {
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            setTickets(prevTickets => {
-                const ticketMap = new Map<string, Ticket>();
-                prevTickets.forEach(t => { if (t.ID) ticketMap.set(t.ID, t); });
-                newTickets.forEach(t => { if (t.ID) ticketMap.set(t.ID, t); });
-                return Array.from(ticketMap.values());
-            });
-
-            if (selectedMonth === null && detectedMonth !== null) {
-                setSelectedMonth(detectedMonth);
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Erro ao processar arquivo CSV');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleClearData = () => {
-        if (currentTeam && confirm(`Limpar todos os dados do time ${currentTeam.name}?`)) {
-            clearTeamTickets(currentTeam.id);
-            clearTeamChamados(currentTeam.id);
-            setTickets([]);
-            setChamados([]);
-            setChamadosMonth(null);
-            setSelectedMonth(null);
-        }
-    };
-
-    const handleImportClick = () => {
-        document.getElementById('hidden-file-input')?.click();
-    };
-
-    const handleXlsxImportClick = () => {
-        document.getElementById('hidden-xlsx-input')?.click();
-    };
-
-    const handleXlsxFileSelect = async (file: File) => {
-        if (role !== 'team' || !currentTeam) return;
-        setLoading(true);
-        try {
-            const newChamados = await parseXlsx(file);
-            // Use selected month if set, otherwise current month
-            const importMonth = selectedMonth !== null ? selectedMonth : new Date().getMonth();
-            setChamados(newChamados);
-            setChamadosMonth(importMonth);
-            saveTeamChamados(currentTeam.id, importMonth, newChamados);
-        } catch (error) {
-            console.error(error);
-            alert('Erro ao processar arquivo XLSX');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleBack = () => {
         if (role === 'manager') {
@@ -183,178 +182,383 @@ export function TeamDashboard() {
         }
     };
 
-    if (!currentTeam) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#6b7280' }}>
-                Carregando...
-            </div>
-        );
-    }
+    const handleStatusClick = (status: string) => {
+        setSelectedStatus(status);
+    };
+
+    // Find the latest date in the dataset to use as anchor for "Latest" filters
+    const lastDataDate = useMemo(() => {
+        if (tickets.length === 0) return new Date();
+        let max = 0;
+        tickets.forEach(t => {
+            const d = parseTicketDate(t["Data de abertura"]);
+            if (d && d.getTime() > max) max = d.getTime();
+        });
+        return max > 0 ? new Date(max) : new Date();
+    }, [tickets]);
+
+    const setLastWeek = () => {
+        const end = new Date(lastDataDate);
+        const start = new Date(lastDataDate);
+        start.setDate(end.getDate() - 6); // Last 7 days including today
+        setStartDate(start);
+        setEndDate(end);
+    };
+
+    const setLast15Days = () => {
+        const end = new Date(lastDataDate);
+        const start = new Date(lastDataDate);
+        start.setDate(end.getDate() - 14);
+        setStartDate(start);
+        setEndDate(end);
+    };
+
+    const setWholeMonth = () => {
+        const target = new Date(lastDataDate);
+        const start = new Date(target.getFullYear(), target.getMonth(), 1);
+        const end = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+        setStartDate(start);
+        setEndDate(end);
+    };
+
+    // Formatting date for input value (YYYY-MM-DD)
+    const formatDateForInput = (date: Date | null) => {
+        if (!date) return '';
+        return date.toISOString().split('T')[0];
+    };
+
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value) {
+            const [y, m, d] = e.target.value.split('-').map(Number);
+            setStartDate(new Date(y, m - 1, d));
+        } else {
+            setStartDate(null);
+        }
+    };
+
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value) {
+            const [y, m, d] = e.target.value.split('-').map(Number);
+            setEndDate(new Date(y, m - 1, d));
+        } else {
+            setEndDate(null);
+        }
+    };
+
+    if (!currentTeam) return <div>Carregando...</div>;
 
     return (
-        <div className="app-container">
-            <header className="app-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    {/* Back Action */}
-                    {role === 'manager' ? (
-                        <button onClick={handleBack} className="icon-button" title="Voltar para seleção">
-                            <ArrowLeft size={20} color="#6b7280" />
-                        </button>
-                    ) : (
-                        <button onClick={handleBack} className="icon-button" title="Sair">
-                            <LogOut size={20} color="#6b7280" />
-                        </button>
-                    )}
+        <div className="layout-container" style={{ gap: '12px' }}>
+            <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-                    <div style={{
-                        background: role === 'manager'
-                            ? 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)'
-                            : 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
-                        padding: '10px', borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                        {role === 'manager' ? <LayoutDashboard color="white" size={24} /> : <Users color="white" size={24} />}
+                {/* TOP HEADER: Identity & Actions */}
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    background: 'white', padding: '16px 24px', borderRadius: '16px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                    {/* Left: Identity */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {role === 'manager' && (
+                            <button onClick={handleBack} className="icon-btn-ghost">
+                                <ArrowLeft size={20} color="#6b7280" />
+                            </button>
+                        )}
+                        <div style={{
+                            width: '48px', height: '48px', borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                        }}>
+                            <LayoutDashboard size={24} />
+                        </div>
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{
+                                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
+                                    color: '#64748b', textTransform: 'uppercase',
+                                    background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
+                                }}>
+                                    {role === 'manager' ? 'Portal do Gestor' : 'Portal do Time'}
+                                </span>
+                            </div>
+                            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
+                                {currentTeam.name}
+                            </h1>
+                        </div>
                     </div>
 
+                    {/* Right: Actions */}
+                    {/* Right: Actions */}
+                    {role === 'team' && (
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
+                                className="btn-secondary"
+                                title="Configurar Importação"
+                            >
+                                <Settings size={18} />
+                                <span className="desktop-only">Configurar</span>
+                            </button>
+                            <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
+                            <button onClick={logout} className="btn-icon-secondary" title="Sair">
+                                <LogOut size={18} color="#ef4444" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* FILTER TOOLBAR */}
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 8px'
+                }}>
+
+                    {/* Left: Summary Stats - REMOVED per user request */}
                     <div>
-                        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.2, color: 'var(--text-main)', margin: 0 }}>
-                            {role === 'manager' ? 'Portal do Gestor' : 'Portal do Time'}
-                        </h1>
-                        {user && (
-                            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>
-                                Olá, <strong>{user.name}</strong>
+                        {availableMonths.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <Calendar size={16} color="#64748b" />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
+                                <select
+                                    value={currentViewMonth}
+                                    onChange={(e) => setCurrentViewMonth(e.target.value)}
+                                    style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem' }}
+                                >
+                                    {availableMonths.map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                </select>
                             </div>
                         )}
-                        <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '2px' }}>
-                            Visualizando: <strong style={{ color: '#374151' }}>{currentTeam.name}</strong>
+                    </div>
+
+                    {/* Right: Filters */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
+                        {/* Quick Actions */}
+                        <div style={{ display: 'flex', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <button onClick={setLastWeek} className="segment-btn">7 dias</button>
+                            <button onClick={setLast15Days} className="segment-btn">15 dias</button>
+                            <button onClick={setWholeMonth} className="segment-btn">Mês</button>
+                        </div>
+
+                        {/* Date Inputs */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div className="date-field">
+                                <span className="label">DE</span>
+                                <input type="date" value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
+                            </div>
+                            <div style={{ color: '#cbd5e1' }}>—</div>
+                            <div className="date-field">
+                                <span className="label">ATÉ</span>
+                                <input type="date" value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <style>{`
+                    .icon-btn-ghost { background: transparent; border: none; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justifyContent: center; }
+                    .icon-btn-ghost:hover { background: #f1f5f9; }
+
+                    .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 8px 16px; border-radius: 10px; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: flex; alignItems: center; gap: 8px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+                    .btn-secondary:hover { border-color: #cbd5e1; background: #f8fafc; color: #1e293b; transform: translateY(-1px); }
+
+                    .btn-icon-secondary { background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 10px; cursor: pointer; display: flex; alignItems: center; justify-content: center; transition: all 0.2s; }
+                    .btn-icon-secondary:hover { border-color: #fca5a5; background: #fef2f2; }
+
+                    .segment-btn { background: transparent; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+                    .segment-btn:hover { background: #f1f5f9; color: #0f172a; }
+                    .segment-btn:active { background: #e2e8f0; }
+
+                    .date-field { display: flex; alignItems: center; gap: 6px; }
+                    .date-field .label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; }
+                    .date-field input { border: none; outline: none; font-size: 0.85rem; color: #334155; font-weight: 500; font-family: inherit; width: 110px; }
+                    .date-field input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+                    .date-field input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+                    @media (max-width: 768px) {
+                        .desktop-only { display: none; }
+                        .layout-container { padding: 16px; }
+                    }
+                `}</style>
+            </header>
+
+            <main className="dashboard-content" style={{ marginTop: '0px' }}> {/* Add margin top */}
+
+                {/* KPI Cards Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+
+                    {/* Card 1: Total Tickets (Violet) */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                        borderRadius: '16px', padding: '24px', color: 'white',
+                        boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
+                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                    {filteredTickets.length}
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                <TicketIcon size={24} color="white" />
+                            </div>
+                        </div>
+                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                            Status: Filtrado por data
+                        </div>
+                    </div>
+
+                    {/* Card 2: Satisfaction (Pink) */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+                        borderRadius: '16px', padding: '24px', color: 'white',
+                        boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                        position: 'relative'
+                    }}>
+                        {role === 'team' && (
+                            <button
+                                onClick={() => setIsEditingStats(true)}
+                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                title="Editar dados manuais"
+                            >
+                                <Edit2 size={16} />
+                            </button>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '16px' }}>
+                            <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                        key={star}
+                                        size={24}
+                                        fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
+                                        color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
+                                    />
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                                    {manualStats.satisfaction}
+                                </span>
+                                <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Manuals Sent (Orange) */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+                        borderRadius: '16px', padding: '24px', color: 'white',
+                        boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                        position: 'relative'
+                    }}>
+                        {role === 'team' && (
+                            <button
+                                onClick={() => setIsEditingStats(true)}
+                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                title="Editar dados manuais"
+                            >
+                                <Edit2 size={16} />
+                            </button>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
+                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                    {manualStats.manuals}
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                <Share2 size={24} color="white" />
+                            </div>
+                        </div>
+                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                            SAJ Ajuda
                         </div>
                     </div>
                 </div>
 
-                {/* RIGHT ACTIONS */}
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    {tickets.length > 0 && (
-                        <div style={{ position: 'relative', marginRight: '4px' }}>
-                            <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#6b7280' }}>
-                                <Calendar size={16} />
+                {/* Manual Stats Edit Modal */}
+                {isEditingStats && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 1000, backdropFilter: 'blur(4px)'
+                    }}>
+                        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '320px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+                            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', color: '#0f172a' }}>Atualizar Métricas</h3>
+
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                    Índice de Satisfação (0-5)
+                                </label>
+                                <input
+                                    type="number" step="0.01" max="5" min="0"
+                                    value={manualStats.satisfaction}
+                                    onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                />
                             </div>
-                            <select
-                                value={selectedMonth === null ? -1 : selectedMonth}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    setSelectedMonth(val === -1 ? null : val);
-                                }}
-                                className="month-select"
-                                style={{
-                                    appearance: 'none', padding: '8px 12px 8px 32px', borderRadius: '8px',
-                                    border: '1px solid #e5e7eb', background: 'white', color: '#374151',
-                                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', outline: 'none', minWidth: '150px'
-                                }}
-                            >
-                                <option value={-1}>📆 Todo o Ano</option>
-                                {months.map((m, i) => (
-                                    <option key={m} value={i}>{m}</option>
-                                ))}
-                            </select>
+
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
+                                    Manuais Enviados
+                                </label>
+                                <input
+                                    type="number" step="1" min="0"
+                                    value={manualStats.manuals}
+                                    onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => setIsEditingStats(false)}
+                                    style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={saveManualStats}
+                                    style={{
+                                        background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px',
+                                        padding: '8px 24px', fontWeight: 600, cursor: 'pointer',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                    }}
+                                >
+                                    Salvar
+                                </button>
+                            </div>
                         </div>
-                    )}
-
-                    {role === 'team' && (
-                        <>
-                            <button
-                                onClick={handleImportClick}
-                                style={{
-                                    background: 'white', color: '#374151', border: '1px solid #e5e7eb',
-                                    padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem',
-                                    fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                                }}
-                            >
-                                <Upload size={16} />
-                                <span>Importar CSV</span>
-                            </button>
-                            <button
-                                onClick={handleXlsxImportClick}
-                                style={{
-                                    background: 'white', color: '#374151', border: '1px solid #e5e7eb',
-                                    padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem',
-                                    fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                                }}
-                            >
-                                <FileSpreadsheet size={16} />
-                                <span>Importar XLSX</span>
-                            </button>
-                            <input
-                                id="hidden-file-input"
-                                type="file"
-                                accept=".csv"
-                                onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                        handleFileSelect(e.target.files[0]);
-                                        e.target.value = '';
-                                    }
-                                }}
-                                style={{ display: 'none' }}
-                            />
-                            <input
-                                id="hidden-xlsx-input"
-                                type="file"
-                                accept=".xlsx,.xls"
-                                onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                        handleXlsxFileSelect(e.target.files[0]);
-                                        e.target.value = '';
-                                    }
-                                }}
-                                style={{ display: 'none' }}
-                            />
-                        </>
-                    )}
-                </div>
-            </header>
-
-            <main className="app-content">
-                {loading && <div className="loading">Carregando...</div>}
+                    </div>
+                )}
 
                 {/* EMPTY STATE */}
-                {tickets.length === 0 && (
+                {tickets.length === 0 && chamados.length === 0 && (
                     <div className="upload-section">
                         {role === 'team' ? (
-                            <>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 600 }}>
-                                        Selecione o Mês de Referência:
-                                    </label>
-                                    <div style={{ position: 'relative', display: 'inline-block' }}>
-                                        <select
-                                            value={selectedMonth === null ? -1 : selectedMonth}
-                                            onChange={(e) => {
-                                                const val = parseInt(e.target.value);
-                                                setSelectedMonth(val === -1 ? null : val);
-                                            }}
-                                            style={{
-                                                appearance: 'none', padding: '10px 16px 10px 36px', borderRadius: '8px',
-                                                border: '1px solid #e5e7eb', background: 'white', color: '#374151',
-                                                fontWeight: 500, fontSize: '0.9rem', cursor: 'pointer', outline: 'none',
-                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)', minWidth: '200px'
-                                            }}
-                                        >
-                                            <option value={-1}>Detectar Automaticamente</option>
-                                            {months.map((m, i) => (
-                                                <option key={m} value={i}>{m}</option>
-                                            ))}
-                                        </select>
-                                        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#6b7280' }}>
-                                            <Calendar size={16} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <FileUpload onFileSelect={handleFileSelect} />
-                                <p style={{ marginTop: '16px', color: '#6b7280', fontSize: '0.9rem' }}>
-                                    Importe o CSV de chamados para o time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.
-                                </p>
-                            </>
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                <h3>Nenhum dado importado ainda.</h3>
+                                <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
+                            </div>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                                 <h3>Aguardando dados...</h3>
@@ -364,14 +568,27 @@ export function TeamDashboard() {
                     </div>
                 )}
 
+
+
                 {/* DASHBOARD CHARTS - CSV */}
                 {tickets.length > 0 && (
-                    <div className="dashboard-grid">
-                        <OriginChart data={originData} />
-                        <CategoryChart data={categoryData} />
-                        <RequesterChart data={requesterData} />
-                        <HistoryChart data={historyData} />
-                    </div>
+                    <>
+                        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <ClipboardList size={20} color="#2563eb" />
+                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                                Painel de chamados
+                            </h2>
+                        </div>
+                        <div className="dashboard-grid">
+                            <OriginChart data={originData} />
+                            <CategoryChart data={categoryData} />
+                        </div>
+
+                        <div className="dashboard-grid">
+                            <RequesterChart data={requesterData} />
+                            <HistoryChart data={historyData} />
+                        </div>
+                    </>
                 )}
 
                 {/* DASHBOARD CHARTS - XLSX Chamados */}
@@ -391,27 +608,26 @@ export function TeamDashboard() {
                             </span>
                         </div>
                         <div className="dashboard-grid">
-                            <StatusChart data={statusData} total={chamados.length} />
+                            <StatusChart
+                                data={statusData}
+                                total={chamados.length}
+                                onSliceClick={handleStatusClick}
+                            />
                             <FuncionalidadeChart data={funcData} />
                         </div>
                     </>
                 )}
 
-                {/* Clear data button */}
-                {(tickets.length > 0 || chamados.length > 0) && role === 'team' && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
-                        <button
-                            onClick={handleClearData}
-                            style={{
-                                background: 'transparent', border: 'none', color: '#ef4444',
-                                cursor: 'pointer', fontSize: '0.8rem', display: 'flex',
-                                alignItems: 'center', gap: '4px', opacity: 0.7
-                            }}
-                        >
-                            <Trash2 size={14} /> Limpar todos os dados de {currentTeam.name}
-                        </button>
-                    </div>
+                {/* Status Details Modal */}
+                {selectedStatus && (
+                    <StatusDetailsModal
+                        status={selectedStatus}
+                        chamados={chamados}
+                        onClose={() => setSelectedStatus(null)}
+                    />
                 )}
+
+
             </main>
         </div>
     );

@@ -5,15 +5,16 @@ import styles from './StatusChart.module.css';
 interface Props {
     data: StatusData[];
     total: number;
+    onSliceClick?: (statusName: string) => void;
 }
 
-export function StatusChart({ data, total }: Props) {
+export function StatusChart({ data, total, onSliceClick }: Props) {
     if (data.length === 0) return null;
 
     return (
         <div className={styles.card}>
             <h3 className={styles.title}>Status dos Chamados</h3>
-            <p className={styles.subtitle}>Distribuição por status atual.</p>
+            <p className={styles.subtitle}>Distribuição por status atual. (Clique para detalhar)</p>
 
             <div className={styles.chartContainer}>
                 <ResponsiveContainer width="100%" height={220}>
@@ -27,9 +28,11 @@ export function StatusChart({ data, total }: Props) {
                             dataKey="value"
                             paddingAngle={3}
                             stroke="none"
+                            cursor="pointer"
+                            onClick={(data) => onSliceClick && onSliceClick(data.name)}
                         >
                             {data.map((entry, i) => (
-                                <Cell key={i} fill={entry.color} />
+                                <Cell key={i} fill={entry.color} style={{ outline: 'none' }} />
                             ))}
                         </Pie>
                         <Tooltip
@@ -46,7 +49,12 @@ export function StatusChart({ data, total }: Props) {
 
             <div className={styles.legend}>
                 {data.map((item, i) => (
-                    <div key={i} className={styles.legendItem}>
+                    <div
+                        key={i}
+                        className={styles.legendItem}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => onSliceClick && onSliceClick(item.name)}
+                    >
                         <span
                             className={styles.legendColor}
                             style={{ background: item.color }}

@@ -52,8 +52,30 @@ export const parseTicketDate = (dateStr: string): Date | null => {
 
 export const filterTicketsByMonth = (tickets: Ticket[], monthIndex: number): Ticket[] => {
     return tickets.filter(ticket => {
-        const date = parseTicketDate(ticket["Data de abertura"]);
+        const dateStr = ticket["Data de abertura"];
+        if (!dateStr) return false;
+        const date = parseTicketDate(dateStr);
         return date && date.getMonth() === monthIndex;
+    });
+};
+
+export const filterTicketsByDateRange = (tickets: Ticket[], startDate: Date | null, endDate: Date | null): Ticket[] => {
+    if (!startDate && !endDate) return tickets;
+
+    return tickets.filter(ticket => {
+        const dateStr = ticket["Data de abertura"];
+        if (!dateStr) return false;
+        const date = parseTicketDate(dateStr);
+        if (!date) return false;
+
+        // Reset times to compare dates only
+        const d = new Date(date).setHours(0, 0, 0, 0);
+        const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
+        const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
     });
 };
 
