@@ -20,7 +20,8 @@ export function parseXlsx(file: File): Promise<Chamado[]> {
                 const sheet = workbook.Sheets[sheetName];
 
                 // Convert to JSON (array of objects)
-                const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                // Use raw: false so Excel dates are parsed as the exact formatted string shown in the UI
+                const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
 
                 if (rows.length === 0) {
                     reject(new Error('A planilha está vazia.'));
