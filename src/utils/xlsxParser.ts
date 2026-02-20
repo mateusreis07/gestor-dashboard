@@ -31,16 +31,42 @@ export function parseXlsx(file: File): Promise<Chamado[]> {
                 console.log('[XLSX Parser Debug] First row raw:', rows[0]);
                 console.log('[XLSX Parser Debug] Keys:', Object.keys(rows[0]));
 
+                const normalizeKey = (k: string) => k.toLowerCase().replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                const getRowValue = (row: Record<string, unknown>, possibleKeys: string[], fallbackKeys: string[] = []): string => {
+                    const rowKeys = Object.keys(row);
+                    const normalizedPossible = possibleKeys.map(normalizeKey);
+
+                    for (const key of rowKeys) {
+                        if (normalizedPossible.includes(normalizeKey(key))) {
+                            return String(row[key] ?? '');
+                        }
+                    }
+
+                    // Se não acho, tenta busca parcial nas keys de fallback (contains)
+                    const normalizedFallback = fallbackKeys.map(normalizeKey);
+                    for (const key of rowKeys) {
+                        const normKey = normalizeKey(key);
+                        for (const fb of normalizedFallback) {
+                            if (normKey.includes(fb)) {
+                                return String(row[key] ?? '');
+                            }
+                        }
+                    }
+
+                    return '';
+                };
+
                 const chamados: Chamado[] = rows.map((row) => ({
-                    numeroChamado: String(row['Nº Chamado'] ?? row['N° Chamado'] ?? row['No Chamado'] ?? ''),
-                    resumo: String(row['Resumo'] ?? ''),
-                    criado: String(row['Criado'] ?? ''),
-                    fimDoPrazo: String(row['Fim do prazo'] ?? row['Fim do Prazo'] ?? ''),
-                    prazoAjustado: String(row['Prazo Ajustado'] ?? ''),
-                    statusChamado: String(row['Status do chamado'] ?? row['Status do Chamado'] ?? ''),
-                    relator: String(row['Relator'] ?? ''),
-                    modulo: String(row['Módulo'] ?? row['Modulo'] ?? ''),
-                    funcionalidade: String(row['Funcionalidade'] ?? ''),
+                    numeroChamado: getRowValue(row, ['NºChamado', 'N°Chamado', 'NoChamado', 'Numero']),
+                    resumo: getRowValue(row, ['Resumo', 'Título', 'Titulo']),
+                    criado: getRowValue(row, ['Criado', 'Data de criação', 'Abertura', 'Emissao', 'Data de Abertura', 'Dt de criacao'], ['criad', 'abertura', 'data']),
+                    fimDoPrazo: getRowValue(row, ['Fim do prazo', 'Fim de prazo', 'Prazo limite', 'Prazo'], ['prazol', 'fimdop']),
+                    prazoAjustado: getRowValue(row, ['Prazo Ajustado', 'Ajustado']),
+                    statusChamado: getRowValue(row, ['Status do chamado', 'Status', 'Situação', 'Situacao']),
+                    relator: getRowValue(row, ['Relator', 'Requerente', 'Solicitante']),
+                    modulo: getRowValue(row, ['Módulo', 'Modulo', 'Sistema']),
+                    funcionalidade: getRowValue(row, ['Funcionalidade', 'Funcao', 'Recurso']),
                 }));
 
                 // Filter out rows where numeroChamado is empty (header/empty rows)
