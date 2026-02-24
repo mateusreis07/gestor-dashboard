@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, LineChart, ArrowLeft } from 'lucide-react';
+import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, LineChart, ArrowLeft, GraduationCap } from 'lucide-react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
 import type { CorporateData } from '../utils/corporateData';
@@ -19,11 +19,6 @@ export function CorporateDashboard() {
     setData(loaded);
     setEditData(JSON.parse(JSON.stringify(loaded))); // Deep copy for edit
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/welcome');
-  };
 
   const handleSave = () => {
     if (editData) {
@@ -259,8 +254,8 @@ export function CorporateDashboard() {
           <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Calendar color="#10b981" size={24} />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Agenda de Treinamentos (2025)</h2>
+                <GraduationCap color="#0f766e" size={24} />
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Treinamentos & Workshops 2025</h2>
               </div>
               {isEditing && (
                 <button onClick={handleAddTraining} style={{ background: '#ecfdf5', color: '#10b981', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
@@ -270,25 +265,20 @@ export function CorporateDashboard() {
             </div>
 
             {!isEditing ? (
-              <div style={{ position: 'relative', paddingLeft: '16px' }}>
-                {/* Timeline vertical line */}
-                <div style={{ position: 'absolute', left: '19px', top: '10px', bottom: '10px', width: '2px', background: '#e2e8f0' }}></div>
-
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', zIndex: 1 }}>
-                  {data.trainings.map((train, idx) => (
-                    <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                      <div style={{
-                        width: '8px', height: '8px', background: 'white', border: '3px solid #10b981',
-                        borderRadius: '50%', marginTop: '6px', flexShrink: 0
-                      }}></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 700 }}>{train.date}</span>
-                        <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>{train.title}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {data.trainings.map((train, idx) => (
+                  <li key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: '16px',
+                    background: '#f8fafc', padding: '16px', borderRadius: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6', flexShrink: 0, width: '100px' }}>
+                      <Calendar size={18} />
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{train.date}</span>
+                    </div>
+                    <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500 }}>{train.title}</span>
+                  </li>
+                ))}
+              </ul>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {editData?.trainings.map((train, idx) => (
