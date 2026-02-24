@@ -19,6 +19,31 @@ export function CorporateDashboard() {
   const teamId = paramsTeamId || localStorage.getItem('gestor_current_team_id');
   const teamName = localStorage.getItem('gestor_current_team_name') || 'Equipe';
 
+  const [currentTeam, setCurrentTeam] = useState<any>(null);
+
+  useEffect(() => {
+    const resolvedTeamId = paramsTeamId || localStorage.getItem('gestor_current_team_id') || (role === 'TEAM' && user ? user.id : null);
+    if (!resolvedTeamId) return;
+
+    if (user && (role === 'TEAM' || resolvedTeamId === user.id)) {
+      setCurrentTeam({
+        id: user.id,
+        name: user.name || user.email,
+        avatarUrl: (user as any).avatarUrl,
+      });
+      return;
+    }
+
+    import('../services/teamService').then(({ managerTeamsService }) => {
+      managerTeamsService.listTeams().then(teams => {
+        const team = teams.find((t: any) => t.id === resolvedTeamId);
+        if (team) {
+          setCurrentTeam(team);
+        }
+      }).catch(err => console.error(err));
+    });
+  }, [paramsTeamId, role, user]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -236,11 +261,12 @@ export function CorporateDashboard() {
               )}
               <div style={{
                 width: '48px', height: '48px', borderRadius: '12px',
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                background: currentTeam?.avatarUrl ? `url(${currentTeam.avatarUrl}) center/cover` : 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                overflow: 'hidden', flexShrink: 0
               }}>
-                <LayoutDashboard size={24} />
+                {!currentTeam?.avatarUrl && <LayoutDashboard size={24} />}
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -253,7 +279,7 @@ export function CorporateDashboard() {
                   </span>
                 </div>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
-                  {role === 'MANAGER' ? (user ? `Olá, ${user.name}` : 'Bem-vindo') : teamName}
+                  {role === 'MANAGER' ? (user ? `Olá, ${user.name}` : 'Bem-vindo') : (currentTeam?.name || teamName)}
                 </h1>
               </div>
             </div>
