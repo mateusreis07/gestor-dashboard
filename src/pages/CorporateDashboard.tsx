@@ -180,6 +180,11 @@ export function CorporateDashboard() {
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {role === 'MANAGER' && (
+                <button onClick={() => navigate('/app/overview')} style={{ background: 'transparent', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
+                  <ArrowLeft size={20} color="#6b7280" />
+                </button>
+              )}
               <div style={{
                 width: '48px', height: '48px', borderRadius: '12px',
                 background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
@@ -205,15 +210,7 @@ export function CorporateDashboard() {
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              {role === 'MANAGER' ? (
-                <button
-                  onClick={() => navigate('/app/overview')}
-                  style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                >
-                  <ArrowLeft size={18} />
-                  <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Voltar</span>
-                </button>
-              ) : (
+              {role !== 'MANAGER' && (
                 <button
                   onClick={() => navigate(teamId ? `/app/team/${teamId}/import` : '/app/dashboard')}
                   style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}

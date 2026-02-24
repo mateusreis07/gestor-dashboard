@@ -450,11 +450,11 @@ export function TeamDashboard() {
                                     <span className="desktop-only">Configurar</span>
                                 </button>
                                 <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-                                <button onClick={logout} className="btn-icon-secondary" title="Sair">
-                                    <LogOut size={18} color="#ef4444" />
-                                </button>
                             </>
                         )}
+                        <button onClick={logout} className="btn-icon-secondary" title="Sair">
+                            <LogOut size={18} color="#ef4444" />
+                        </button>
                     </div>
                 </div>
 
