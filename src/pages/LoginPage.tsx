@@ -7,7 +7,7 @@ export function LoginPage() {
     const { role: roleParam } = useParams<{ role: string }>();
     const role = roleParam as 'manager' | 'team';
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -19,10 +19,22 @@ export function LoginPage() {
 
         const loggedUser = await login(email, password);
         console.log('[LOGIN] loggedUser retornado:', loggedUser);
-        console.log('[LOGIN] token no localStorage:', localStorage.getItem('token'));
-        console.log('[LOGIN] user no localStorage:', localStorage.getItem('user'));
 
         if (loggedUser) {
+            // Validate if the user role matches the login page they are trying to access
+            const isManagerLogin = role === 'manager';
+            const isUserManager = loggedUser.role === 'MANAGER';
+
+            if (isManagerLogin !== isUserManager) {
+                // Roles mismatch: they are logging into the wrong portal
+                logout(); // remove the token stored by authService during login
+                setError(`Acesso negado: Este e-mail não pertence a um ${isManagerLogin ? 'Gestor' : 'Time'}.`);
+                return;
+            }
+
+            console.log('[LOGIN] token no localStorage:', localStorage.getItem('token'));
+            console.log('[LOGIN] user no localStorage:', localStorage.getItem('user'));
+
             const destino = loggedUser.role === 'MANAGER'
                 ? '/app/overview'
                 : `/app/team/${loggedUser.id}`;
