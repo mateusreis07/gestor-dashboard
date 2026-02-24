@@ -22,6 +22,7 @@ import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
 import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2 } from 'lucide-react';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
+import styles from './TeamDashboard.module.css';
 
 export function TeamDashboard() {
     const { teamId } = useParams<{ teamId: string }>();
@@ -404,88 +405,59 @@ export function TeamDashboard() {
     }
 
     return (
-        <div className="layout-container" style={{ gap: '12px' }}>
-            <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                {/* TOP HEADER: Identity & Actions */}
-                <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: 'white', padding: '16px 24px', borderRadius: '16px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                }}>
-                    {/* Left: Identity */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        {role === 'MANAGER' && (
-                            <button onClick={handleBack} className="icon-btn-ghost">
-                                <ArrowLeft size={20} color="#6b7280" />
-                            </button>
-                        )}
-                        <div style={{
-                            width: '48px', height: '48px', borderRadius: '12px',
-                            background: currentTeam.avatarUrl ? `url(${currentTeam.avatarUrl}) center/cover` : 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
-                            overflow: 'hidden', flexShrink: 0
-                        }}>
-                            {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
-                        </div>
-
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{
-                                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
-                                    color: '#64748b', textTransform: 'uppercase',
-                                    background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
-                                }}>
-                                    {role === 'MANAGER' ? 'Portal do Gestor' : 'Portal do Time'}
-                                </span>
+        <div className={styles.page}>
+            <div className={styles.layoutContainer}>
+                <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className={styles.headerPanel}>
+                        <div className={styles.headerLeft}>
+                            {role === 'MANAGER' && (
+                                <button onClick={handleBack} className={styles.backButton}>
+                                    <ArrowLeft size={20} />
+                                </button>
+                            )}
+                            <div className={styles.teamAvatar} style={currentTeam.avatarUrl ? { background: `url(${currentTeam.avatarUrl}) center/cover` } : { background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)' }}>
+                                {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
                             </div>
-                            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
-                                {currentTeam.name}
-                            </h1>
-                        </div>
-                    </div>
 
-                    {/* Right: Actions */}
-                    {/* Right: Actions */}
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        {role === 'TEAM' && (
-                            <>
+                            <div className={styles.teamInfo}>
+                                <span className={styles.roleBadge}>
+                                    {role === 'MANAGER' ? 'Portal Executivo' : 'Portal Operacional'}
+                                </span>
+                                <h1 className={styles.teamName}>
+                                    {currentTeam.name}
+                                </h1>
+                            </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className={styles.headerActions}>
+                            {role === 'TEAM' && (
                                 <button
                                     onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
-                                    className="btn-secondary"
-                                    title="Configurar Importação"
+                                    className={styles.configButton}
+                                    title="Configurar Log"
                                 >
                                     <Settings size={18} />
-                                    <span className="desktop-only">Configurar</span>
+                                    <span className="desktop-only">Parametrizar Logs</span>
                                 </button>
-                                <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-                            </>
-                        )}
-                        <button onClick={logout} className="btn-icon-secondary" title="Sair">
-                            <LogOut size={18} color="#ef4444" />
-                        </button>
+                            )}
+                            <button onClick={logout} className={styles.backButton} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }} title="Desconectar">
+                                <LogOut size={18} />
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* FILTER TOOLBAR */}
-                {activeTab === 'geral' && (
-                    <div style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '8px 8px'
-                    }}>
-
-                        {/* Left: Summary Stats - REMOVED per user request */}
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'white', padding: '6px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                                <Calendar size={16} color="#64748b" style={{ marginRight: '4px' }} />
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
+                    {/* FILTER TOOLBAR */}
+                    {activeTab === 'geral' && (
+                        <div className={styles.filterToolbar}>
+                            <div className={styles.monthSelector}>
+                                <Calendar size={18} color="#f8fafc" />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8' }}>Mês Base:</span>
 
                                 <select
-                                    className="month-picker-select"
+                                    className={styles.monthSelect}
                                     value={currentViewMonth ? currentViewMonth.split('-')[1] : '01'}
                                     onChange={(e) => setCurrentViewMonth(`${currentViewMonth ? currentViewMonth.split('-')[0] : new Date().getFullYear()}-${e.target.value}`)}
-                                    style={{ border: 'none', background: '#f8fafc', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem', padding: '4px 8px', borderRadius: '6px' }}
                                 >
                                     <option value="01">Janeiro</option>
                                     <option value="02">Fevereiro</option>
@@ -501,48 +473,42 @@ export function TeamDashboard() {
                                     <option value="12">Dezembro</option>
                                 </select>
 
-                                <span style={{ fontWeight: 700, color: '#64748b', fontSize: '0.9rem', padding: '0 4px' }}>de</span>
+                                <span style={{ fontWeight: 700, color: '#64748b', fontSize: '0.9rem', padding: '0 4px' }}>/</span>
 
                                 <select
-                                    className="year-picker-select"
+                                    className={styles.monthSelect}
                                     value={currentViewMonth ? currentViewMonth.split('-')[0] : new Date().getFullYear().toString()}
                                     onChange={(e) => setCurrentViewMonth(`${e.target.value}-${currentViewMonth ? currentViewMonth.split('-')[1] : '01'}`)}
-                                    style={{ border: 'none', background: '#f8fafc', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem', padding: '4px 8px', borderRadius: '6px' }}
                                 >
                                     {Array.from({ length: 16 }, (_, i) => 2015 + i).map(y => (
                                         <option key={y} value={y}>{y}</option>
                                     ))}
                                 </select>
                             </div>
-                        </div>
 
-                        {/* Right: Filters */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
-                            {/* Quick Actions */}
-                            <div style={{ display: 'flex', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                <button onClick={setLastWeek} className="segment-btn">7 dias</button>
-                                <button onClick={setLast15Days} className="segment-btn">15 dias</button>
-                                <button onClick={setWholeMonth} className="segment-btn">Mês</button>
-                            </div>
-
-                            {/* Date Inputs */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                <div className="date-field">
-                                    <span className="label">DE</span>
-                                    <input type="date" value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
+                            <div className={styles.filterActions}>
+                                <div className={styles.quickFilters}>
+                                    <button onClick={setLastWeek} className={styles.quickFilterBtn}>7 dias</button>
+                                    <button onClick={setLast15Days} className={styles.quickFilterBtn}>15 dias</button>
+                                    <button onClick={setWholeMonth} className={styles.quickFilterBtn}>Mês Cheio</button>
                                 </div>
-                                <div style={{ color: '#cbd5e1' }}>—</div>
-                                <div className="date-field">
-                                    <span className="label">ATÉ</span>
-                                    <input type="date" value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
+
+                                <div className={styles.dateRange}>
+                                    <div className={styles.dateField}>
+                                        <span>DE</span>
+                                        <input type="date" className={styles.dateInput} value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
+                                    </div>
+                                    <div style={{ color: '#475569' }}>—</div>
+                                    <div className={styles.dateField}>
+                                        <span>ATÉ</span>
+                                        <input type="date" className={styles.dateInput} value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
+                                    </div>
                                 </div>
                             </div>
-
                         </div>
-                    </div>
-                )}
+                    )}
 
-                <style>{`
+                    <style>{`
                     .icon-btn-ghost { background: transparent; border: none; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justifyContent: center; }
                     .icon-btn-ghost:hover { background: #f1f5f9; }
 
@@ -582,592 +548,596 @@ export function TeamDashboard() {
                         .layout-container { padding: 16px; }
                     }
                 `}</style>
-            </header>
+                </header>
 
-            <main className="dashboard-content" style={{ marginTop: '0px' }}> {/* Add margin top */}
-                {/* TABS HEADERS */}
-                <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px' }}>
-                    <button
-                        onClick={() => { setActiveTab('geral'); navigate(teamId ? `/app/team/${teamId}` : '/app/dashboard'); }}
-                        style={{ background: 'none', border: 'none', borderBottom: activeTab === 'geral' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'geral' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'geral' ? 1 : 0.6 }}>
-                        <LayoutDashboard size={20} />
-                        Visão Geral
-                    </button>
-                    <button
-                        onClick={() => { setActiveTab('indicadores'); navigate(teamId ? `/app/team/${teamId}/indicadores` : '/app/indicadores'); }}
-                        style={{ background: 'none', border: 'none', borderBottom: activeTab === 'indicadores' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'indicadores' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'indicadores' ? 1 : 0.6 }}>
-                        <BarChart2 size={20} />
-                        Indicadores
-                    </button>
-                    <button
-                        onClick={() => navigate(teamId ? `/app/team/${teamId}/institucional` : '/app/institucional')}
-                        style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
-                        <Building2 size={20} />
-                        Institucional
-                    </button>
-                </div>
+                <main style={{ marginTop: '0px' }}> {/* Add margin top */}
+                    {/* TABS HEADERS */}
+                    <div className={styles.tabsContainer}>
+                        <button
+                            onClick={() => { setActiveTab('geral'); navigate(teamId ? `/app/team/${teamId}` : '/app/dashboard'); }}
+                            className={`${styles.tabButton} ${activeTab === 'geral' ? styles.active : ''}`}>
+                            <LayoutDashboard size={20} />
+                            Visão Operacional
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('indicadores'); navigate(teamId ? `/app/team/${teamId}/indicadores` : '/app/indicadores'); }}
+                            className={`${styles.tabButton} ${activeTab === 'indicadores' ? styles.active : ''}`}>
+                            <BarChart2 size={20} />
+                            KPIs e Indicadores
+                        </button>
+                        <button
+                            onClick={() => navigate(teamId ? `/app/team/${teamId}/institucional` : '/app/institucional')}
+                            className={styles.tabButton}>
+                            <Building2 size={20} />
+                            Metas Institucionais
+                        </button>
+                    </div>
 
-                {activeTab === 'geral' ? (
-                    <>
+                    {activeTab === 'geral' ? (
+                        <>
 
-                        {/* KPI Cards Row */}
-                        {!isLoading && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                            {/* KPI Cards Row */}
+                            {!isLoading && (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
 
-                                {/* Card 1: Total Tickets (Violet) */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-                                    borderRadius: '16px', padding: '24px', color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
-                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                                {filteredTickets.length}
+                                    {/* Card 1: Total Tickets (Violet) */}
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                                        borderRadius: '16px', padding: '24px', color: 'white',
+                                        boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2)',
+                                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Chamados no Período</h3>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                                    {filteredTickets.length}
+                                                </div>
+                                            </div>
+                                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                <TicketIcon size={24} color="white" />
                                             </div>
                                         </div>
-                                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <TicketIcon size={24} color="white" />
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                            Status: Filtrado por data
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                        Status: Filtrado por data
+
+                                    {/* Card 2: Satisfaction (Pink) */}
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+                                        borderRadius: '16px', padding: '24px', color: 'white',
+                                        boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
+                                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                        position: 'relative'
+                                    }}>
+                                        {role === 'TEAM' && (
+                                            <button
+                                                onClick={() => setIsEditingStats(true)}
+                                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                title="Editar dados manuais"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                        )}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
+                                                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
+                                            </div>
+                                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
+                                            </div>
+                                        </div>
+
+                                        <div style={{ marginTop: '16px' }}>
+                                            <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={star}
+                                                        size={24}
+                                                        fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
+                                                        color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                                                    {manualStats.satisfaction}
+                                                </span>
+                                                <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Card 3: Manuals Sent (Orange) */}
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+                                        borderRadius: '16px', padding: '24px', color: 'white',
+                                        boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
+                                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                        position: 'relative'
+                                    }}>
+                                        {role === 'TEAM' && (
+                                            <button
+                                                onClick={() => setIsEditingStats(true)}
+                                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                title="Editar dados manuais"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                        )}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
+                                                    {manualStats.manuals}
+                                                </div>
+                                            </div>
+                                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                <Share2 size={24} color="white" />
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
+                                            SAJ Ajuda
+                                        </div>
                                     </div>
                                 </div>
+                            )}
 
-                                {/* Card 2: Satisfaction (Pink) */}
+                            {/* Manual Stats Edit Modal */}
+                            {isEditingStats && (
                                 <div style={{
-                                    background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
-                                    borderRadius: '16px', padding: '24px', color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(219, 39, 119, 0.2)',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                                    position: 'relative'
+                                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                    background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
                                 }}>
-                                    {role === 'TEAM' && (
-                                        <button
-                                            onClick={() => setIsEditingStats(true)}
-                                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                            title="Editar dados manuais"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                    )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Índice de Satisfação</h3>
-                                            <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Global Bot – WhatsApp</div>
+                                    <div style={{
+                                        background: '#0f172a', padding: '32px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        width: '100%', maxWidth: '600px', maxHeight: '90vh',
+                                        overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                    }}>
+                                        <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#f8fafc' }}>Atualizar Métricas</h3>
+
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                                Índice de Satisfação (0-5)
+                                            </label>
+                                            <input
+                                                type="number" step="0.01" max="5" min="0"
+                                                value={manualStats.satisfaction}
+                                                onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none' }}
+                                            />
                                         </div>
-                                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <Heart size={24} color="white" fill="rgba(255,255,255,0.2)" />
+
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                                Manuais Enviados
+                                            </label>
+                                            <input
+                                                type="number" step="1" min="0"
+                                                value={manualStats.manuals}
+                                                onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none' }}
+                                            />
+                                        </div>
+
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                                Projetos
+                                            </label>
+                                            <textarea
+                                                rows={5}
+                                                placeholder="Liste os projetos..."
+                                                value={manualStats.projetos}
+                                                onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                            />
+                                        </div>
+
+                                        <div style={{ marginBottom: '24px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                                Treinamentos Ministrados
+                                            </label>
+                                            <textarea
+                                                rows={5}
+                                                placeholder="Liste os treinamentos..."
+                                                value={manualStats.treinamentos}
+                                                onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                            <button
+                                                onClick={() => setIsEditingStats(false)}
+                                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleSaveStats}
+                                                style={{
+                                                    background: '#38bdf8', color: '#020617', border: 'none', borderRadius: '0',
+                                                    padding: '8px 24px', fontWeight: 700, cursor: 'pointer',
+                                                    boxShadow: '0 4px 6px -1px rgba(56, 189, 248, 0.2)'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)'}
+                                                onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(56, 189, 248, 0.2)'}
+                                            >
+                                                Salvar
+                                            </button>
                                         </div>
                                     </div>
+                                </div>
+                            )
+                            }
 
-                                    <div style={{ marginTop: '16px' }}>
-                                        <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={star}
-                                                    size={24}
-                                                    fill={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "none"}
-                                                    color={star <= Math.round(Number(manualStats.satisfaction)) ? "white" : "rgba(255,255,255,0.4)"}
-                                                />
-                                            ))}
+                            {/* SKELETON LOADER */}
+                            {
+                                isLoading && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                                            <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                            <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
+                                            <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                            <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>
-                                                {manualStats.satisfaction}
+                                        <div className="dashboard-grid">
+                                            <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                                            <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+                            {/* EMPTY STATE */}
+                            {
+                                !isLoading && tickets.length === 0 && chamados.length === 0 && (
+                                    <div className="upload-section">
+                                        {role === 'TEAM' ? (
+                                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                                <h3>Nenhum dado importado ainda.</h3>
+                                                <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
+                                            </div>
+                                        ) : (
+                                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                                <h3>Aguardando dados...</h3>
+                                                <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            }
+
+
+
+                            {/* DASHBOARD CHARTS - CSV */}
+                            {
+                                !isLoading && tickets.length > 0 && (
+                                    <>
+                                        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <ClipboardList size={20} color="#38bdf8" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                Painel de chamados
+                                            </h2>
+                                        </div>
+                                        <div className="dashboard-grid">
+                                            <OriginChart data={originData} />
+                                            <CategoryChart data={categoryData} />
+                                        </div>
+
+                                        <div className="dashboard-grid">
+                                            <RequesterChart data={requesterData} />
+                                            <HistoryChart data={historyData} />
+                                        </div>
+                                    </>
+                                )
+                            }
+
+                            {/* DASHBOARD CHARTS - XLSX Chamados */}
+                            {
+                                !isLoading && showChamados && (
+                                    <>
+                                        <div style={{
+                                            marginTop: tickets.length > 0 ? '32px' : '0',
+                                            marginBottom: '16px',
+                                            display: 'flex', alignItems: 'center', gap: '10px'
+                                        }}>
+                                            <ClipboardList size={20} color="#38bdf8" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                Painel de Chamados JIRA
+                                            </h2>
+                                            <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                                {chamados.length} registros
                                             </span>
-                                            <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.8 }}>/ 5.0</span>
                                         </div>
+                                        <div className="dashboard-grid">
+                                            <StatusChart
+                                                data={statusData}
+                                                total={chamados.length}
+                                                onSliceClick={handleStatusClick}
+                                            />
+                                            <FuncionalidadeChart data={funcData} />
+                                        </div>
+                                    </>
+                                )
+                            }
+
+                            {/* NEW PANEL - PROJETOS & TREINAMENTOS */}
+                            {
+                                !isLoading && (
+                                    <>
+                                        <div style={{
+                                            marginTop: '32px',
+                                            marginBottom: '16px',
+                                            display: 'flex', alignItems: 'center', gap: '10px'
+                                        }}>
+                                            <ClipboardList size={20} color="#38bdf8" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                Entregas do Período
+                                            </h2>
+                                        </div>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                            {/* Card: Projetos (Teal) */}
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                                                borderRadius: '16px', padding: '24px', color: 'white',
+                                                boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
+                                                display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                                position: 'relative'
+                                            }}>
+                                                {role === 'TEAM' && (
+                                                    <button
+                                                        onClick={() => setIsEditingStats(true)}
+                                                        style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                        title="Editar dados manuais"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                )}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                    <div>
+                                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Projetos no Mês</h3>
+                                                    </div>
+                                                    <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                        <FolderKanban size={24} color="white" />
+                                                    </div>
+                                                </div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: 500,
+                                                    lineHeight: 1.5,
+                                                    whiteSpace: 'pre-wrap',
+                                                    maxHeight: '120px',
+                                                    overflowY: 'auto'
+                                                }}>
+                                                    {manualStats.projetos || 'Nenhum projeto informado.'}
+                                                </div>
+                                            </div>
+
+                                            {/* Card: Treinamentos (Indigo) */}
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                                                borderRadius: '16px', padding: '24px', color: 'white',
+                                                boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
+                                                display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
+                                                position: 'relative'
+                                            }}>
+                                                {role === 'TEAM' && (
+                                                    <button
+                                                        onClick={() => setIsEditingStats(true)}
+                                                        style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
+                                                        title="Editar dados manuais"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                )}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                    <div>
+                                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Treinamentos Ministrados</h3>
+                                                    </div>
+                                                    <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+                                                        <GraduationCap size={24} color="white" />
+                                                    </div>
+                                                </div>
+                                                <div style={{
+                                                    flex: 1,
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: 500,
+                                                    lineHeight: 1.5,
+                                                    whiteSpace: 'pre-wrap',
+                                                    maxHeight: '120px',
+                                                    overflowY: 'auto'
+                                                }}>
+                                                    {manualStats.treinamentos || 'Nenhum treinamento informado.'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )
+                            }
+
+                            {/* Status Details Modal */}
+                            {
+                                selectedStatus && (
+                                    <StatusDetailsModal
+                                        status={selectedStatus}
+                                        chamados={chamados}
+                                        onClose={() => setSelectedStatus(null)}
+                                    />
+                                )
+                            }
+
+
+                        </>
+                    ) : (
+                        <>
+                            {/* INDICADORES VIEW */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: 'rgba(15, 23, 42, 0.6)', padding: '16px 24px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '0', background: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8' }}>
+                                        <BarChart2 size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>Indicadores Anuais</h2>
+                                        <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Métricas preenchidas mês a mês por relatório</p>
                                     </div>
                                 </div>
 
-                                {/* Card 3: Manuals Sent (Orange) */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
-                                    borderRadius: '16px', padding: '24px', color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                                    position: 'relative'
-                                }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '8px 16px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                        <Calendar size={18} color="#64748b" />
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#94a3b8' }}>Ano:</span>
+                                        <select
+                                            value={indicatorsYear}
+                                            onChange={(e) => setIndicatorsYear(e.target.value)}
+                                            style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#f8fafc', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
+                                        >
+                                            {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
+                                                <option key={year} value={year}>{year}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     {role === 'TEAM' && (
                                         <button
-                                            onClick={() => setIsEditingStats(true)}
-                                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                            title="Editar dados manuais"
+                                            onClick={() => setIsEditingIndicators(true)}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#38bdf8', color: '#020617', padding: '10px 20px', borderRadius: '0', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(56, 189, 248, 0.2)' }}
+                                            onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)'}
+                                            onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(56, 189, 248, 0.2)'}
                                         >
-                                            <Edit2 size={16} />
+                                            Preencher Mês
                                         </button>
                                     )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9, margin: 0 }}>Manuais Enviados</h3>
-                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, margin: '8px 0 0 0', lineHeight: 1 }}>
-                                                {manualStats.manuals}
-                                            </div>
-                                        </div>
-                                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <Share2 size={24} color="white" />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '12px' }}>
-                                        SAJ Ajuda
-                                    </div>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Manual Stats Edit Modal */}
-                        {isEditingStats && (
-                            <div style={{
-                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
-                            }}>
-                                <div style={{
-                                    background: 'white', padding: '32px', borderRadius: '24px',
-                                    width: '100%', maxWidth: '600px', maxHeight: '90vh',
-                                    overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-                                }}>
-                                    <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Atualizar Métricas</h3>
-
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                            Índice de Satisfação (0-5)
-                                        </label>
-                                        <input
-                                            type="number" step="0.01" max="5" min="0"
-                                            value={manualStats.satisfaction}
-                                            onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                            Manuais Enviados
-                                        </label>
-                                        <input
-                                            type="number" step="1" min="0"
-                                            value={manualStats.manuals}
-                                            onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                            Projetos
-                                        </label>
-                                        <textarea
-                                            rows={5}
-                                            placeholder="Liste os projetos..."
-                                            value={manualStats.projetos}
-                                            onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ marginBottom: '24px' }}>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '6px' }}>
-                                            Treinamentos Ministrados
-                                        </label>
-                                        <textarea
-                                            rows={5}
-                                            placeholder="Liste os treinamentos..."
-                                            value={manualStats.treinamentos}
-                                            onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                        <button
-                                            onClick={() => setIsEditingStats(false)}
-                                            style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            onClick={handleSaveStats}
-                                            style={{
-                                                background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px',
-                                                padding: '8px 24px', fontWeight: 600, cursor: 'pointer',
-                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                                            }}
-                                        >
-                                            Salvar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                        }
-
-                        {/* SKELETON LOADER */}
-                        {
-                            isLoading && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                                        <div className="skeleton-box" style={{ height: '140px', borderRadius: '16px' }}></div>
-                                    </div>
-                                    <div className="dashboard-grid">
-                                        <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
-                                        <div className="skeleton-box" style={{ height: '350px', borderRadius: '16px' }}></div>
-                                    </div>
-                                </div>
-                            )
-                        }
-
-                        {/* EMPTY STATE */}
-                        {
-                            !isLoading && tickets.length === 0 && chamados.length === 0 && (
-                                <div className="upload-section">
-                                    {role === 'TEAM' ? (
-                                        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                            <h3>Nenhum dado importado ainda.</h3>
-                                            <p>Comece importando um arquivo CSV ou XLSX para visualizar os dados do time <strong style={{ color: '#1890ff' }}>{currentTeam.name}</strong>.</p>
-                                        </div>
-                                    ) : (
-                                        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                            <h3>Aguardando dados...</h3>
-                                            <p>O time <strong>{currentTeam.name}</strong> ainda não importou nenhum dado.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        }
-
-
-
-                        {/* DASHBOARD CHARTS - CSV */}
-                        {
-                            !isLoading && tickets.length > 0 && (
-                                <>
-                                    <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <ClipboardList size={20} color="#2563eb" />
-                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                            Painel de chamados
-                                        </h2>
-                                    </div>
-                                    <div className="dashboard-grid">
-                                        <OriginChart data={originData} />
-                                        <CategoryChart data={categoryData} />
-                                    </div>
-
-                                    <div className="dashboard-grid">
-                                        <RequesterChart data={requesterData} />
-                                        <HistoryChart data={historyData} />
-                                    </div>
-                                </>
-                            )
-                        }
-
-                        {/* DASHBOARD CHARTS - XLSX Chamados */}
-                        {
-                            !isLoading && showChamados && (
-                                <>
-                                    <div style={{
-                                        marginTop: tickets.length > 0 ? '32px' : '0',
-                                        marginBottom: '16px',
-                                        display: 'flex', alignItems: 'center', gap: '10px'
-                                    }}>
-                                        <ClipboardList size={20} color="#2563eb" />
-                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                            Painel de Chamados JIRA
-                                        </h2>
-                                        <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
-                                            {chamados.length} registros
-                                        </span>
-                                    </div>
-                                    <div className="dashboard-grid">
-                                        <StatusChart
-                                            data={statusData}
-                                            total={chamados.length}
-                                            onSliceClick={handleStatusClick}
-                                        />
-                                        <FuncionalidadeChart data={funcData} />
-                                    </div>
-                                </>
-                            )
-                        }
-
-                        {/* NEW PANEL - PROJETOS & TREINAMENTOS */}
-                        {
-                            !isLoading && (
-                                <>
-                                    <div style={{
-                                        marginTop: '32px',
-                                        marginBottom: '16px',
-                                        display: 'flex', alignItems: 'center', gap: '10px'
-                                    }}>
-                                        <ClipboardList size={20} color="#2563eb" />
-                                        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                                            Entregas do Período
-                                        </h2>
-                                    </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                                        {/* Card: Projetos (Teal) */}
-                                        <div style={{
-                                            background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
-                                            borderRadius: '16px', padding: '24px', color: 'white',
-                                            boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                                            position: 'relative'
-                                        }}>
-                                            {role === 'TEAM' && (
-                                                <button
-                                                    onClick={() => setIsEditingStats(true)}
-                                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                                    title="Editar dados manuais"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                            )}
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <div>
-                                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Projetos no Mês</h3>
-                                                </div>
-                                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                                    <FolderKanban size={24} color="white" />
-                                                </div>
-                                            </div>
-                                            <div style={{
-                                                flex: 1,
-                                                fontSize: '0.95rem',
-                                                fontWeight: 500,
-                                                lineHeight: 1.5,
-                                                whiteSpace: 'pre-wrap',
-                                                maxHeight: '120px',
-                                                overflowY: 'auto'
-                                            }}>
-                                                {manualStats.projetos || 'Nenhum projeto informado.'}
-                                            </div>
-                                        </div>
-
-                                        {/* Card: Treinamentos (Indigo) */}
-                                        <div style={{
-                                            background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
-                                            borderRadius: '16px', padding: '24px', color: 'white',
-                                            boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
-                                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '140px',
-                                            position: 'relative'
-                                        }}>
-                                            {role === 'TEAM' && (
-                                                <button
-                                                    onClick={() => setIsEditingStats(true)}
-                                                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer', color: 'white' }}
-                                                    title="Editar dados manuais"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                            )}
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <div>
-                                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, margin: 0, color: 'white' }}>Treinamentos Ministrados</h3>
-                                                </div>
-                                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                                    <GraduationCap size={24} color="white" />
-                                                </div>
-                                            </div>
-                                            <div style={{
-                                                flex: 1,
-                                                fontSize: '0.95rem',
-                                                fontWeight: 500,
-                                                lineHeight: 1.5,
-                                                whiteSpace: 'pre-wrap',
-                                                maxHeight: '120px',
-                                                overflowY: 'auto'
-                                            }}>
-                                                {manualStats.treinamentos || 'Nenhum treinamento informado.'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )
-                        }
-
-                        {/* Status Details Modal */}
-                        {
-                            selectedStatus && (
-                                <StatusDetailsModal
-                                    status={selectedStatus}
-                                    chamados={chamados}
-                                    onClose={() => setSelectedStatus(null)}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '24px' }}>
+                                <YearlyLineChart
+                                    data={yearlyIndicators.map(indicator => ({
+                                        name: indicator.month.split('-')[1],
+                                        value: Number(indicator.peticionamento) || 0
+                                    }))}
+                                    title="Evolução de Peticionamento"
+                                    color="#5865F2"
                                 />
-                            )
-                        }
-
-
-                    </>
-                ) : (
-                    <>
-                        {/* INDICADORES VIEW */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: 'white', padding: '16px 24px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(37, 99, 235, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
-                                    <BarChart2 size={24} />
-                                </div>
-                                <div>
-                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Indicadores Anuais</h2>
-                                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Métricas preenchidas mês a mês por relatório</p>
-                                </div>
+                                <YearlyLineChart
+                                    data={yearlyIndicators.map(indicator => ({
+                                        name: indicator.month.split('-')[1],
+                                        value: Number(indicator.extrajudiciais) || 0
+                                    }))}
+                                    title="Novos Extrajudiciais"
+                                    color="#5865F2"
+                                />
+                                <YearlyLineChart
+                                    data={yearlyIndicators.map(indicator => ({
+                                        name: indicator.month.split('-')[1],
+                                        value: Number(indicator.documentos) || 0
+                                    }))}
+                                    title="Documentos Emitidos"
+                                    color="#5865F2"
+                                />
+                                <YearlyLineChart
+                                    data={yearlyIndicators.map(indicator => ({
+                                        name: indicator.month.split('-')[1],
+                                        value: Number(indicator.movimentos) || 0
+                                    }))}
+                                    title="Movimentos Taxonômicos"
+                                    color="#5865F2"
+                                />
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                    <Calendar size={18} color="#64748b" />
-                                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>Ano:</span>
-                                    <select
-                                        value={indicatorsYear}
-                                        onChange={(e) => setIndicatorsYear(e.target.value)}
-                                        style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
-                                    >
-                                        {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
-                                            <option key={year} value={year}>{year}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {role === 'TEAM' && (
-                                    <button
-                                        onClick={() => setIsEditingIndicators(true)}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}
-                                    >
-                                        <Edit2 size={18} />
-                                        Atualizar Ano
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '24px' }}>
-                            <YearlyLineChart
-                                data={yearlyIndicators.map(indicator => ({
-                                    name: indicator.month.split('-')[1],
-                                    value: Number(indicator.peticionamento) || 0
-                                }))}
-                                title="Evolução de Peticionamento"
-                                color="#5865F2"
-                            />
-                            <YearlyLineChart
-                                data={yearlyIndicators.map(indicator => ({
-                                    name: indicator.month.split('-')[1],
-                                    value: Number(indicator.extrajudiciais) || 0
-                                }))}
-                                title="Novos Extrajudiciais"
-                                color="#5865F2"
-                            />
-                            <YearlyLineChart
-                                data={yearlyIndicators.map(indicator => ({
-                                    name: indicator.month.split('-')[1],
-                                    value: Number(indicator.documentos) || 0
-                                }))}
-                                title="Documentos Emitidos"
-                                color="#5865F2"
-                            />
-                            <YearlyLineChart
-                                data={yearlyIndicators.map(indicator => ({
-                                    name: indicator.month.split('-')[1],
-                                    value: Number(indicator.movimentos) || 0
-                                }))}
-                                title="Movimentos Taxonômicos"
-                                color="#5865F2"
-                            />
-                        </div>
-
-                        {isEditingIndicators && (
-                            <div style={{
-                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
-                            }}>
+                            {isEditingIndicators && (
                                 <div style={{
-                                    background: 'white', padding: '32px', borderRadius: '24px',
-                                    width: '100%', maxWidth: '800px', maxHeight: '90vh',
-                                    overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                    background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
                                 }}>
-                                    <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>
-                                        Atualizar Indicadores ({indicatorsYear})
-                                    </h3>
+                                    <div style={{
+                                        background: 'white', padding: '32px', borderRadius: '24px',
+                                        width: '100%', maxWidth: '800px', maxHeight: '90vh',
+                                        overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                                    }}>
+                                        <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>
+                                            Atualizar Indicadores ({indicatorsYear})
+                                        </h3>
 
-                                    <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Mês</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Peticionamento</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Novos Extrajudiciais</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Documentos Emitidos</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Movimentos Tax.</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {indicatorsForm.map((item, index) => {
-                                                    const mesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-                                                    return (
-                                                        <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                            <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>
-                                                                {mesLabels[index]}
-                                                            </td>
-                                                            <td style={{ padding: '8px' }}>
-                                                                <input type="number" value={item.peticionamento} onChange={e => {
-                                                                    const newForm = [...indicatorsForm];
-                                                                    newForm[index].peticionamento = e.target.value;
-                                                                    setIndicatorsForm(newForm);
-                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                                                            </td>
-                                                            <td style={{ padding: '8px' }}>
-                                                                <input type="number" value={item.extrajudiciais} onChange={e => {
-                                                                    const newForm = [...indicatorsForm];
-                                                                    newForm[index].extrajudiciais = e.target.value;
-                                                                    setIndicatorsForm(newForm);
-                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                                                            </td>
-                                                            <td style={{ padding: '8px' }}>
-                                                                <input type="number" value={item.documentos} onChange={e => {
-                                                                    const newForm = [...indicatorsForm];
-                                                                    newForm[index].documentos = e.target.value;
-                                                                    setIndicatorsForm(newForm);
-                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                                                            </td>
-                                                            <td style={{ padding: '8px' }}>
-                                                                <input type="number" value={item.movimentos} onChange={e => {
-                                                                    const newForm = [...indicatorsForm];
-                                                                    newForm[index].movimentos = e.target.value;
-                                                                    setIndicatorsForm(newForm);
-                                                                }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Mês</th>
+                                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Peticionamento</th>
+                                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Novos Extrajudiciais</th>
+                                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Documentos Emitidos</th>
+                                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>Movimentos Tax.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {indicatorsForm.map((item, index) => {
+                                                        const mesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                                                        return (
+                                                            <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>
+                                                                    {mesLabels[index]}
+                                                                </td>
+                                                                <td style={{ padding: '8px' }}>
+                                                                    <input type="number" value={item.peticionamento} onChange={e => {
+                                                                        const newForm = [...indicatorsForm];
+                                                                        newForm[index].peticionamento = e.target.value;
+                                                                        setIndicatorsForm(newForm);
+                                                                    }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                                </td>
+                                                                <td style={{ padding: '8px' }}>
+                                                                    <input type="number" value={item.extrajudiciais} onChange={e => {
+                                                                        const newForm = [...indicatorsForm];
+                                                                        newForm[index].extrajudiciais = e.target.value;
+                                                                        setIndicatorsForm(newForm);
+                                                                    }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                                </td>
+                                                                <td style={{ padding: '8px' }}>
+                                                                    <input type="number" value={item.documentos} onChange={e => {
+                                                                        const newForm = [...indicatorsForm];
+                                                                        newForm[index].documentos = e.target.value;
+                                                                        setIndicatorsForm(newForm);
+                                                                    }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                                </td>
+                                                                <td style={{ padding: '8px' }}>
+                                                                    <input type="number" value={item.movimentos} onChange={e => {
+                                                                        const newForm = [...indicatorsForm];
+                                                                        newForm[index].movimentos = e.target.value;
+                                                                        setIndicatorsForm(newForm);
+                                                                    }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
 
-                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                        <button
-                                            onClick={() => setIsEditingIndicators(false)}
-                                            style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}>
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            onClick={handleSaveIndicators}
-                                            style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 24px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                                            Salvar Indicadores
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                            <button
+                                                onClick={() => setIsEditingIndicators(false)}
+                                                style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}>
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleSaveIndicators}
+                                                style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 24px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                                Salvar Indicadores
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </main >
-        </div >
+                            )}
+                        </>
+                    )}
+                </main>
+            </div>
+        </div>
     );
 }

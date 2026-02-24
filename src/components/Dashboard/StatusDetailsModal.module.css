@@ -14,7 +14,8 @@
 }
 
 .modal {
-  background-color: white;
+  background-color: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   width: 95%;
