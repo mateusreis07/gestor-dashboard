@@ -14,12 +14,9 @@ export interface MonthlyCalls {
 }
 
 export interface CorporateData {
-  calls2023: MonthlyCalls;
-  calls2024: MonthlyCalls;
-  calls2025: MonthlyCalls;
-  calls2026: MonthlyCalls;
   projects: string[];
   trainings: { date: string; title: string }[];
+  [key: string]: any; // Allow dynamic callsYYYY, like calls2023, calls2027
 }
 
 const defaultData: CorporateData = {
@@ -76,14 +73,19 @@ export const loadCorporateData = (): CorporateData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Merge with default data to guarantee fields (e.g. if new years are added)
+
+      // Ensure all loaded keys that start with calls are mapped
+      const dynamicCalls: any = {};
+      Object.keys(parsed).forEach(key => {
+        if (key.startsWith('calls')) {
+          dynamicCalls[key] = { ...(defaultData[key] || {}), ...parsed[key] };
+        }
+      });
+
       return {
         ...defaultData,
         ...parsed,
-        calls2023: { ...defaultData.calls2023, ...parsed.calls2023 },
-        calls2024: { ...defaultData.calls2024, ...parsed.calls2024 },
-        calls2025: { ...defaultData.calls2025, ...parsed.calls2025 },
-        calls2026: { ...defaultData.calls2026, ...parsed.calls2026 },
+        ...dynamicCalls
       };
     }
   } catch (error) {

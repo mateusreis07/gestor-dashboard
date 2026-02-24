@@ -61,48 +61,60 @@ export function CorporateDashboard() {
     }
   };
 
-  const totals = useMemo(() => {
-    if (!data) return { 2023: 0, 2024: 0, 2025: 0, 2026: 0 };
-    return {
-      2023: Object.values(data.calls2023).reduce((a, b) => a + Number(b), 0),
-      2024: Object.values(data.calls2024).reduce((a, b) => a + Number(b), 0),
-      2025: Object.values(data.calls2025).reduce((a, b) => a + Number(b), 0),
-      2026: Object.values(data.calls2026).reduce((a, b) => a + Number(b), 0),
-    };
+  const yearsKeys = useMemo(() => {
+    if (!data) return [];
+    return Object.keys(data).filter(k => k.startsWith('calls')).sort();
   }, [data]);
+
+  const totals = useMemo(() => {
+    if (!data) return {};
+    const t: Record<string, number> = {};
+    yearsKeys.forEach(key => {
+      const year = key.replace('calls', '');
+      t[year] = Object.values(data[key]).reduce((a: any, b: any) => Number(a) + Number(b), 0) as number;
+    });
+    return t;
+  }, [data, yearsKeys]);
 
   const ptMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const enMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
   const getYearData = (yearData: any) => {
+    if (!yearData) return [];
     return enMonths.map((m, idx) => ({
       name: ptMonths[idx],
       value: yearData[m] || 0
     }));
   };
 
-  const chartData2023 = useMemo(() => data ? getYearData(data.calls2023) : [], [data]);
-  const chartData2024 = useMemo(() => data ? getYearData(data.calls2024) : [], [data]);
-  const chartData2025 = useMemo(() => data ? getYearData(data.calls2025) : [], [data]);
-  const chartData2026 = useMemo(() => data ? getYearData(data.calls2026) : [], [data]);
-
   const yearlyData = useMemo(() => {
-    return [
-      { name: '2023', value: totals[2023] },
-      { name: '2024', value: totals[2024] },
-      { name: '2025', value: totals[2025] },
-      { name: '2026', value: totals[2026] }
-    ];
-  }, [totals]);
+    return yearsKeys.map(key => {
+      const year = key.replace('calls', '');
+      return { name: year, value: totals[year] || 0 };
+    });
+  }, [yearsKeys, totals]);
 
-  const handleEditMonth = (year: 'calls2023' | 'calls2024' | 'calls2025' | 'calls2026', month: string, value: string) => {
+  const handleEditMonth = (yearKey: string, month: string, value: string) => {
     if (!editData) return;
     const val = parseInt(value, 10);
     setEditData({
       ...editData,
-      [year]: {
-        ...editData[year],
+      [yearKey]: {
+        ...editData[yearKey],
         [month]: isNaN(val) ? 0 : val
+      }
+    });
+  };
+
+  const handleCreateYear = () => {
+    if (!editData) return;
+    const nextYear = prompt("Digite o novo ano (ex: 2027):");
+    if (!nextYear || isNaN(Number(nextYear))) return;
+
+    setEditData({
+      ...editData,
+      [`calls${nextYear}`]: {
+        jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
       }
     });
   };
@@ -333,27 +345,53 @@ export function CorporateDashboard() {
         {/* KPIs */}
         {!isEditing && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-            <KPICard year="2023" total={totals[2023]} previousTotal={null} />
-            <KPICard year="2024" total={totals[2024]} previousTotal={totals[2023]} />
-            <KPICard year="2025" total={totals[2025]} previousTotal={totals[2024]} />
-            <KPICard year="2026" total={totals[2026]} previousTotal={totals[2025]} />
+            {yearsKeys.map((key, idx) => {
+              const year = key.replace('calls', '');
+              const prevKey = yearsKeys[idx - 1];
+              const prevYear = prevKey ? prevKey.replace('calls', '') : null;
+              return (
+                <KPICard
+                  key={year}
+                  year={year}
+                  total={totals[year]}
+                  previousTotal={prevYear ? totals[prevYear] : null}
+                />
+              );
+            })}
           </div>
         )}
 
         {/* Charts: Monthly */}
         <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Chamados por Mês</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Chamados por Mês</h2>
+            {isEditing && (
+              <button
+                onClick={handleCreateYear}
+                style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Plus size={16} /> Adicionar Ano
+              </button>
+            )}
+          </div>
 
           {!isEditing ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', rowGap: '48px' }}>
-              <MonthlyBarChart title="2023" color={YEAR_COLORS[0]} chartData={chartData2023} />
-              <MonthlyBarChart title="2024" color={YEAR_COLORS[1]} chartData={chartData2024} />
-              <MonthlyBarChart title="2025" color={YEAR_COLORS[2]} chartData={chartData2025} />
-              <MonthlyBarChart title="2026" color={YEAR_COLORS[3]} chartData={chartData2026} />
+              {yearsKeys.map((key, idx) => {
+                const year = key.replace('calls', '');
+                return (
+                  <MonthlyBarChart
+                    key={year}
+                    title={year}
+                    color={YEAR_COLORS[idx % YEAR_COLORS.length]}
+                    chartData={data ? getYearData(data[key]) : []}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', overflowX: 'auto' }}>
-              {['calls2023', 'calls2024', 'calls2025', 'calls2026'].map((yearKey) => (
+              {(editData ? Object.keys(editData).filter(k => k.startsWith('calls')).sort() : []).map((yearKey) => (
                 <div key={yearKey} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', minWidth: '200px' }}>
                   <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#334155', marginBottom: '16px', textAlign: 'center' }}>
                     Ano {yearKey.replace('calls', '')}
