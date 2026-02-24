@@ -450,54 +450,56 @@ export function TeamDashboard() {
                 </div>
 
                 {/* FILTER TOOLBAR */}
-                <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 8px'
-                }}>
+                {activeTab === 'geral' && (
+                    <div style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '8px 8px'
+                    }}>
 
-                    {/* Left: Summary Stats - REMOVED per user request */}
-                    <div>
-                        {availableMonths.length > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                                <Calendar size={16} color="#64748b" />
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
-                                <select
-                                    value={currentViewMonth}
-                                    onChange={(e) => setCurrentViewMonth(e.target.value)}
-                                    style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem' }}
-                                >
-                                    {availableMonths.map(m => (
-                                        <option key={m} value={m}>{m}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right: Filters */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
-                        {/* Quick Actions */}
-                        <div style={{ display: 'flex', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <button onClick={setLastWeek} className="segment-btn">7 dias</button>
-                            <button onClick={setLast15Days} className="segment-btn">15 dias</button>
-                            <button onClick={setWholeMonth} className="segment-btn">Mês</button>
+                        {/* Left: Summary Stats - REMOVED per user request */}
+                        <div>
+                            {availableMonths.length > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                    <Calendar size={16} color="#64748b" />
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
+                                    <select
+                                        value={currentViewMonth}
+                                        onChange={(e) => setCurrentViewMonth(e.target.value)}
+                                        style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem' }}
+                                    >
+                                        {availableMonths.map(m => (
+                                            <option key={m} value={m}>{m}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Date Inputs */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <div className="date-field">
-                                <span className="label">DE</span>
-                                <input type="date" value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
+                        {/* Right: Filters */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
+                            {/* Quick Actions */}
+                            <div style={{ display: 'flex', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                <button onClick={setLastWeek} className="segment-btn">7 dias</button>
+                                <button onClick={setLast15Days} className="segment-btn">15 dias</button>
+                                <button onClick={setWholeMonth} className="segment-btn">Mês</button>
                             </div>
-                            <div style={{ color: '#cbd5e1' }}>—</div>
-                            <div className="date-field">
-                                <span className="label">ATÉ</span>
-                                <input type="date" value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
-                            </div>
-                        </div>
 
+                            {/* Date Inputs */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                <div className="date-field">
+                                    <span className="label">DE</span>
+                                    <input type="date" value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
+                                </div>
+                                <div style={{ color: '#cbd5e1' }}>—</div>
+                                <div className="date-field">
+                                    <span className="label">ATÉ</span>
+                                    <input type="date" value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <style>{`
                     .icon-btn-ghost { background: transparent; border: none; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justifyContent: center; }
