@@ -63,10 +63,7 @@ export function ManagerOverview() {
     const getTeamColor = (name: string) => {
         const hue = (name.length * 47 + name.charCodeAt(0) * 13) % 360;
         return {
-            bg: `hsl(${hue}, 75%, 94%)`,
-            text: `hsl(${hue}, 75%, 30%)`,
-            accent: `hsl(${hue}, 75%, 50%)`,
-            gradient: `linear-gradient(135deg, hsl(${hue}, 80%, 55%) 0%, hsl(${hue + 30}, 75%, 45%) 100%)`
+            gradient: `linear-gradient(135deg, hsl(${hue}, 80%, 45%) 0%, hsl(${hue + 30}, 75%, 25%) 100%)`
         };
     };
 
@@ -76,13 +73,13 @@ export function ManagerOverview() {
             <header className={styles.header}>
                 <div className={styles.headerLeft}>
                     <div className={styles.headerLogo}>
-                        <BarChart3 color="white" size={22} />
+                        <BarChart3 color="white" size={24} />
                     </div>
                     <div>
-                        <h1 className={styles.headerTitle}>Gestor Dashboard</h1>
+                        <h1 className={styles.headerTitle}>GestorOS</h1>
                         {user && (
                             <p className={styles.headerGreeting}>
-                                Olá, <strong>{user.name}</strong>
+                                Board Executivo • <strong>{user.name}</strong>
                             </p>
                         )}
                     </div>
@@ -94,9 +91,9 @@ export function ManagerOverview() {
                         className={styles.manageButton}
                     >
                         <Settings size={16} />
-                        <span>Gerenciar Times</span>
+                        <span>Gerenciar Operações</span>
                     </button>
-                    <button onClick={handleLogout} className={styles.logoutButton} title="Sair">
+                    <button onClick={handleLogout} className={styles.logoutButton} title="Desconectar">
                         <LogOut size={18} />
                     </button>
                 </div>
@@ -105,38 +102,39 @@ export function ManagerOverview() {
             {/* Main Content */}
             <main className={styles.main}>
                 <div className={styles.sectionHeader}>
-                    <div>
-                        <h2 className={styles.sectionTitle}>Painel de Equipes</h2>
-                        <p className={styles.sectionSubtitle}>
-                            Selecione uma equipe para visualizar seu dashboard de chamados
-                        </p>
+                    <div className={styles.sectionHeaderTop}>
+                        <h2 className={styles.sectionTitle}>Times Operacionais</h2>
+                        <div className={styles.teamCount}>
+                            <Users size={16} />
+                            <span>{teams.length} {teams.length === 1 ? 'equipe' : 'equipes'}</span>
+                        </div>
                     </div>
-                    <div className={styles.teamCount}>
-                        <Users size={16} />
-                        <span>{teams.length} {teams.length === 1 ? 'equipe' : 'equipes'}</span>
-                    </div>
+                    <p className={styles.sectionSubtitle}>
+                        Acesse as unidades abaixo para monitorar chamados estratégicos e performance setorial.
+                    </p>
                 </div>
 
                 {isLoading ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', padding: '24px' }}>
-                        <div style={{ height: '140px', background: '#e2e8f0', borderRadius: '16px', animation: 'pulse 1.5s infinite' }}></div>
-                        <div style={{ height: '140px', background: '#e2e8f0', borderRadius: '16px', animation: 'pulse 1.5s infinite' }}></div>
+                    <div className={styles.loadingGrid}>
+                        <div className={styles.loadingSkeleton}></div>
+                        <div className={styles.loadingSkeleton}></div>
+                        <div className={styles.loadingSkeleton}></div>
                     </div>
                 ) : teams.length === 0 ? (
                     <div className={styles.emptyState}>
                         <div className={styles.emptyIcon}>
-                            <Users size={48} strokeWidth={1.2} />
+                            <Users size={48} strokeWidth={1} />
                         </div>
-                        <h3 className={styles.emptyTitle}>Nenhuma equipe cadastrada</h3>
+                        <h3 className={styles.emptyTitle}>Nenhuma operação mapeada</h3>
                         <p className={styles.emptyText}>
-                            Crie sua primeira equipe para começar a visualizar os dashboards.
+                            Sua infraestrutura está limpa. Crie sua primeira unidade de time no painel operacional para começar o tracking.
                         </p>
                         <button
                             onClick={() => navigate('/app/manager')}
                             className={styles.emptyButton}
                         >
                             <Plus size={18} />
-                            Criar Primeira Equipe
+                            Criar Nova Equipe
                         </button>
                     </div>
                 ) : (
@@ -161,7 +159,7 @@ export function ManagerOverview() {
 
                                     <div className={styles.cardBody}>
                                         <h3 className={styles.cardName}>{team.name}</h3>
-                                        <p className={styles.cardEmail}>{team.email || 'Sem e-mail'}</p>
+                                        <p className={styles.cardEmail}>{team.email || 'Credencial Pendente'}</p>
                                     </div>
 
                                     <div className={styles.cardFooter}>
@@ -169,13 +167,13 @@ export function ManagerOverview() {
                                             <BarChart3 size={14} />
                                             <span>
                                                 {team.ticketCount > 0
-                                                    ? `${team.ticketCount} chamados`
-                                                    : 'Sem dados ainda'}
+                                                    ? `${team.ticketCount} tickets mapeados`
+                                                    : 'Aguardando logs'}
                                             </span>
                                         </div>
                                         <div
                                             className={styles.cardIndicator}
-                                            style={{ background: team.ticketCount > 0 ? '#22c55e' : '#d1d5db' }}
+                                            style={{ color: team.ticketCount > 0 ? '#4ade80' : '#475569' }}
                                         />
                                     </div>
                                 </button>
