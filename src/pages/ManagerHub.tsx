@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { managerTeamsService } from '../services/teamService';
-import { ArrowLeft, Settings, Plus, Trash2, Edit2, Eye } from 'lucide-react';
+import { ArrowLeft, Settings, Plus, Trash2, Edit2, Eye, Image as ImageIcon } from 'lucide-react';
 
 interface Team {
     id: string;
     name: string;
     email: string;
     createdAt: string;
+    avatarUrl?: string | null;
 }
 
 export function ManagerHub() {
@@ -21,8 +22,10 @@ export function ManagerHub() {
     const [formName, setFormName] = useState('');
     const [formEmail, setFormEmail] = useState('');
     const [formPassword, setFormPassword] = useState('');
+    const [formAvatar, setFormAvatar] = useState<string | null>(null);
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         loadTeams();
@@ -51,6 +54,7 @@ export function ManagerHub() {
         setFormName(team.name || '');
         setFormEmail(team.email);
         setFormPassword('');
+        setFormAvatar(team.avatarUrl || null);
         setFormError('');
         setShowForm(true);
     };
@@ -60,8 +64,24 @@ export function ManagerHub() {
         setFormName('');
         setFormEmail('');
         setFormPassword('');
+        setFormAvatar(null);
         setFormError('');
         setShowForm(true);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                setFormError('A imagem deve ter no máximo 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormAvatar(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +94,9 @@ export function ManagerHub() {
                 if (formName) updateData.name = formName;
                 if (formEmail) updateData.email = formEmail;
                 if (formPassword) updateData.password = formPassword;
+                if (formAvatar && formAvatar !== editingTeam.avatarUrl) {
+                    updateData.avatarBase64 = formAvatar;
+                }
                 await managerTeamsService.updateTeam(editingTeam.id, updateData);
             } else {
                 if (!formPassword) {
@@ -81,7 +104,7 @@ export function ManagerHub() {
                     setSaving(false);
                     return;
                 }
-                await managerTeamsService.createTeam(formName, formEmail, formPassword);
+                await managerTeamsService.createTeam(formName, formEmail, formPassword, formAvatar || undefined);
             }
             setShowForm(false);
             await loadTeams();
@@ -180,6 +203,28 @@ export function ManagerHub() {
                                 {editingTeam ? 'Editar Time' : 'Novo Time'}
                             </h2>
                             <form onSubmit={handleSubmit}>
+                                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{
+                                            width: '80px', height: '80px', borderRadius: '40px',
+                                            background: formAvatar ? `url(${formAvatar}) center/cover` : '#f3f4f6',
+                                            border: '2px dashed #d1d5db',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            cursor: 'pointer', overflow: 'hidden'
+                                        }}
+                                        title="Clique para alterar a foto do time"
+                                    >
+                                        {!formAvatar && <ImageIcon color="#9ca3af" size={32} />}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept="image/png, image/jpeg, image/jpg"
+                                        style={{ display: 'none' }}
+                                    />
+                                </div>
                                 <div style={{ marginBottom: '16px' }}>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, color: '#374151', fontSize: '0.875rem' }}>Nome do Time</label>
                                     <input
@@ -242,8 +287,20 @@ export function ManagerHub() {
                                 boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
                             }}>
                                 <div>
-                                    <p style={{ fontWeight: 600, color: '#1f2937', margin: 0 }}>{team.name || 'Sem nome'}</p>
-                                    <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '4px 0 0 0' }}>{team.email}</p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{
+                                            width: '40px', height: '40px', borderRadius: '20px',
+                                            background: team.avatarUrl ? `url(${team.avatarUrl}) center/cover` : '#e5e7eb',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}>
+                                            {!team.avatarUrl && <ImageIcon size={20} color="#9ca3af" />}
+                                        </div>
+                                        <div>
+                                            <p style={{ fontWeight: 600, color: '#1f2937', margin: 0 }}>{team.name || 'Sem nome'}</p>
+                                            <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '4px 0 0 0' }}>{team.email}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button

@@ -2,6 +2,42 @@ import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 import { supabase, supabaseAdmin } from '../lib/supabase';
 
+async function uploadAvatar(userId: string, base64: string): Promise<string | null> {
+  if (!supabaseAdmin) return null;
+
+  try {
+    // try to create bucket 'avatars'
+    await supabaseAdmin.storage.createBucket('avatars', { public: true }).catch(() => { });
+
+    const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return null;
+    }
+    const contentType = matches[1];
+    const buffer = Buffer.from(matches[2], 'base64');
+    const ext = contentType.split('/')[1] || 'png';
+    const filename = `${userId}-${Date.now()}.${ext}`;
+
+    const { error } = await supabaseAdmin.storage
+      .from('avatars')
+      .upload(filename, buffer, {
+        contentType,
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Supabase storage upload error:', error);
+      return null;
+    }
+
+    const { data } = supabaseAdmin.storage.from('avatars').getPublicUrl(filename);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    return null;
+  }
+}
+
 // Listar todos os times
 export const listTeams = async (req: Request, res: Response) => {
   try {
@@ -11,6 +47,7 @@ export const listTeams = async (req: Request, res: Response) => {
         id: true,
         name: true,
         email: true,
+        avatarUrl: true,
         createdAt: true,
         _count: {
           select: { tickets: true, chamados: true }
@@ -22,6 +59,7 @@ export const listTeams = async (req: Request, res: Response) => {
       id: t.id,
       name: t.name,
       email: t.email,
+      avatarUrl: t.avatarUrl,
       createdAt: t.createdAt,
       ticketCount: t._count.tickets + t._count.chamados
     }));
@@ -36,7 +74,7 @@ export const listTeams = async (req: Request, res: Response) => {
 // Criar um novo time
 export const createTeam = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, avatarBase64 } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
@@ -74,6 +112,12 @@ export const createTeam = async (req: Request, res: Response) => {
       supabaseUserId = data.user!.id;
     }
 
+    // Handle avatar upload
+    let avatarUrl = null;
+    if (avatarBase64) {
+      avatarUrl = await uploadAvatar(supabaseUserId, avatarBase64);
+    }
+
     // 2. Criar usuário no banco local (Prisma) com o ID do Supabase
     const team = await prisma.user.create({
       data: {
@@ -81,9 +125,10 @@ export const createTeam = async (req: Request, res: Response) => {
         name,
         email,
         password: 'supabase_auth_managed',
-        role: 'TEAM'
+        role: 'TEAM',
+        avatarUrl
       },
-      select: { id: true, name: true, email: true, createdAt: true }
+      select: { id: true, name: true, email: true, createdAt: true, avatarUrl: true }
     });
 
     console.log(`[Teams] Created team: ${name} (${email}) -> ID: ${supabaseUserId}`);
@@ -98,7 +143,7 @@ export const createTeam = async (req: Request, res: Response) => {
 export const updateTeam = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
-    const { name, email, password } = req.body;
+    const { name, email, password, avatarBase64 } = req.body;
 
     const updateData: any = {};
     if (name) updateData.name = name;
@@ -109,11 +154,19 @@ export const updateTeam = async (req: Request, res: Response) => {
     }
     if (password) updateData.password = 'supabase_auth_managed';
 
+    // Handle avatar upload
+    if (avatarBase64) {
+      const newAvatarUrl = await uploadAvatar(id, avatarBase64);
+      if (newAvatarUrl) {
+        updateData.avatarUrl = newAvatarUrl;
+      }
+    }
+
     // Atualizar no banco local
     const team = await prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, avatarUrl: true }
     });
 
     // Atualizar no Supabase Auth (se admin disponível)

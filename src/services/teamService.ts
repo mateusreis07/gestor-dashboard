@@ -71,17 +71,17 @@ export const teamService = {
 
 // Serviço de gerenciamento de times (apenas para gestor)
 export const managerTeamsService = {
-  async listTeams(): Promise<{ id: string; name: string; email: string; createdAt: string; ticketCount?: number }[]> {
+  async listTeams(): Promise<{ id: string; name: string; email: string; createdAt: string; ticketCount?: number; avatarUrl?: string | null }[]> {
     const response = await api.get('/manager/teams');
     return response.data;
   },
 
-  async createTeam(name: string, email: string, password: string) {
-    const response = await api.post('/manager/teams', { name, email, password });
+  async createTeam(name: string, email: string, password: string, avatarBase64?: string) {
+    const response = await api.post('/manager/teams', { name, email, password, avatarBase64 });
     return response.data;
   },
 
-  async updateTeam(id: string, data: { name?: string; email?: string; password?: string }) {
+  async updateTeam(id: string, data: { name?: string; email?: string; password?: string, avatarBase64?: string }) {
     const response = await api.put(`/manager/teams/${id}`, data);
     return response.data;
   },
