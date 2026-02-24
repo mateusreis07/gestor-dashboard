@@ -430,14 +430,6 @@ export function TeamDashboard() {
                     {/* Right: Actions */}
                     {/* Right: Actions */}
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <button
-                            onClick={() => navigate('/app/institucional')}
-                            className="btn-secondary"
-                            title="Visão Institucional"
-                        >
-                            <Building2 size={18} />
-                            <span className="desktop-only">Institucional</span>
-                        </button>
                         {role === 'TEAM' && (
                             <>
                                 <button
@@ -563,6 +555,12 @@ export function TeamDashboard() {
                         style={{ background: 'none', border: 'none', borderBottom: activeTab === 'indicadores' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'indicadores' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'indicadores' ? 1 : 0.6 }}>
                         <BarChart2 size={20} />
                         Indicadores
+                    </button>
+                    <button
+                        onClick={() => navigate('/app/institucional')}
+                        style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
+                        <Building2 size={20} />
+                        Institucional
                     </button>
                 </div>
 
