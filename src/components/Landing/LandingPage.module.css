@@ -1,91 +1,371 @@
+/* Globals & Layout */
 .container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, #f0f2f5 0%, #e6f7ff 100%);
-    padding: 20px;
+    background-color: #020617;
+    /* Slate 950 */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    color: #f8fafc;
 }
 
-.title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #1f2937;
-    margin-bottom: 8px;
-    letter-spacing: -0.05em;
-}
-
-.subtitle {
-    font-size: 1.1rem;
-    color: #6b7280;
-    margin-bottom: 48px;
-}
-
-.cardContainer {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.card {
-    background: white;
-    padding: 32px;
-    border-radius: 16px;
-    width: 280px;
+/* --- LEFT SIDE: HERO --- */
+.heroSection {
+    flex: 6;
+    position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 80px;
+    background: radial-gradient(circle at top left, #0f172a 0%, #020617 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1;
+}
+
+.noiseOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.gridOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -2;
+    pointer-events: none;
+    mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
+}
+
+.brandWrapper {
+    display: flex;
     align-items: center;
-    text-align: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoText {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: #f8fafc;
+}
+
+.heroContent {
+    max-width: 600px;
+    margin-top: -10vh;
+    /* Optical centering */
+}
+
+.headline {
+    font-size: 5.5rem;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    margin: 0 0 24px 0;
+    color: #ffffff;
+    will-change: transform, opacity;
+    animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.gradientText {
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.heroSub {
+    font-size: 1.25rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    font-weight: 400;
+    margin-bottom: 48px;
+    animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+    opacity: 0;
+}
+
+.features {
+    display: flex;
+    gap: 32px;
+    animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    opacity: 0;
+}
+
+.featureItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #cbd5e1;
+}
+
+.footerInfo {
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+/* --- RIGHT SIDE: LOGIN ACTIONS --- */
+.loginSection {
+    flex: 4;
+    background-color: #020617;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+    position: relative;
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+.loginHeader {
+    margin-bottom: 48px;
+    animation: slideLeftFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    opacity: 0;
+}
+
+.loginHeader h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+}
+
+.loginHeader p {
+    font-size: 1.05rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.cardsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.roleCard {
+    position: relative;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0;
+    /* Brutalist/Sharp corners */
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid transparent;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideLeftFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+    opacity: 0;
+    outline: none;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+.roleCard:nth-child(2) {
+    animation-delay: 0.4s;
 }
 
-.managerCard:hover {
-    border-color: #1890ff;
+.roleCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: transparent;
+    transition: background 0.4s;
 }
 
-.teamCard:hover {
-    border-color: #52c41a;
+.managerCard::before {
+    background: #0ea5e9;
+    opacity: 0;
 }
 
-.iconWrapper {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: #f3f4f6;
+.teamCard::before {
+    background: #22c55e;
+    opacity: 0;
+}
+
+.roleCard:hover {
+    background: rgba(15, 23, 42, 1);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(-8px);
+    box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.roleCard:hover::before {
+    opacity: 1;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.iconBox,
+.iconBoxTeam {
+    width: 56px;
+    height: 56px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
-    transition: background 0.3s;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s;
 }
 
-.managerCard:hover .iconWrapper {
-    background: #e6f7ff;
+.roleCard:hover .iconBox {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: rgba(14, 165, 233, 0.2);
 }
 
-.teamCard:hover .iconWrapper {
-    background: #f6ffed;
+.roleCard:hover .iconBoxTeam {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
 }
 
-.roleTitle {
+.arrowIcon {
+    color: #475569;
+    transform: translateX(0);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.5;
+}
+
+.roleCard:hover .arrowIcon {
+    color: #f8fafc;
+    transform: translateX(8px);
+    opacity: 1;
+}
+
+.cardBody h3 {
+    margin: 0 0 8px 0;
     font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #374151;
+    font-weight: 600;
+    color: #f1f5f9;
 }
 
-.roleDesc {
-    font-size: 0.875rem;
-    color: #9ca3af;
+.cardBody p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #94a3b8;
     line-height: 1.5;
+}
+
+.cardGlow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    border-radius: 50%;
+    pointer-events: none;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+}
+
+.managerCard:hover .cardGlow {
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+    opacity: 1;
+    transform: scale(1.5);
+}
+
+.teamCard:hover .cardGlow {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+    opacity: 1;
+    transform: scale(1.5);
+}
+
+/* Animations */
+@keyframes slideUpFade {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideLeftFade {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .heroSection {
+        padding: 40px;
+        flex: none;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .heroContent {
+        margin-top: 40px;
+        margin-bottom: 40px;
+    }
+
+    .headline {
+        font-size: 3.5rem;
+    }
+
+    .loginSection {
+        padding: 60px 40px;
+        flex: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .features {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .headline {
+        font-size: 2.5rem;
+    }
+
+    .loginSection {
+        padding: 40px 20px;
+    }
 }
