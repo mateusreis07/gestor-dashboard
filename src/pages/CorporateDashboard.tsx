@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2 } from 'lucide-react';
+import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2, Loader2 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList, Cell } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
 import type { CorporateData } from '../utils/corporateData';
@@ -167,7 +167,15 @@ export function CorporateDashboard() {
 
   const YEAR_COLORS = ['#a855f7', '#f59e0b', '#14b8a6', '#0ea5e9']; // 2023, 2024, 2025, 2026
 
-  if (!data) return <div>Carregando...</div>;
+  if (!data) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', flexDirection: 'column', gap: '16px' }}>
+        <Loader2 size={40} color="#0ea5e9" style={{ animation: 'spin 1s linear infinite' }} />
+        <span style={{ color: '#64748b', fontWeight: 500, fontSize: '1rem' }}>Carregando dados institucionais...</span>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '40px' }}>

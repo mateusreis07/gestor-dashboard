@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Calendar, Trash } from 'lucide-react';
+import { ArrowLeft, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Calendar, Trash, Loader2 } from 'lucide-react';
 import { parseCSV } from '../utils/csvParser';
 import { parseXlsx } from '../utils/xlsxParser';
 import { saveTeamTickets, saveTeamChamados, saveMonthData, loadMonthData } from '../utils/storage';
@@ -115,7 +115,13 @@ export const ImportConfiguration: React.FC = () => {
   };
 
   if (!resolvedTeamId) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>Carregando...</div>;
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', flexDirection: 'column', gap: '16px' }}>
+        <Loader2 size={40} color="#0ea5e9" style={{ animation: 'spin 1s linear infinite' }} />
+        <span style={{ color: '#64748b', fontWeight: 500, fontSize: '1rem' }}>Carregando tela de importação...</span>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
   return (

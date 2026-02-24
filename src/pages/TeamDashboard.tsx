@@ -20,7 +20,7 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2 } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2 } from 'lucide-react';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 
 export function TeamDashboard() {
@@ -392,7 +392,15 @@ export function TeamDashboard() {
         }
     };
 
-    if (!currentTeam) return <div>Carregando...</div>;
+    if (!currentTeam) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', flexDirection: 'column', gap: '16px' }}>
+                <Loader2 size={40} color="#0ea5e9" style={{ animation: 'spin 1s linear infinite' }} />
+                <span style={{ color: '#64748b', fontWeight: 500, fontSize: '1rem' }}>Carregando dados do time...</span>
+                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+        );
+    }
 
     return (
         <div className="layout-container" style={{ gap: '12px' }}>
