@@ -50,6 +50,11 @@ function App() {
               <TeamDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/app/indicadores" element={
+            <ProtectedRoute>
+              <TeamDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/app/institucional" element={
             <ProtectedRoute>
               <CorporateDashboard />

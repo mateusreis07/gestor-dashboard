@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { OriginChart } from '../components/Dashboard/OriginChart';
 import { CategoryChart } from '../components/Dashboard/CategoryChart';
@@ -27,6 +27,16 @@ export function TeamDashboard() {
     const { teamId } = useParams<{ teamId: string }>();
     const { user, role, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Determine default tab from URL path
+    const isIndicadoresPath = location.pathname.includes('/indicadores');
+    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores'>(isIndicadoresPath ? 'indicadores' : 'geral');
+
+    // Sync state if URL changes externally
+    useEffect(() => {
+        setActiveTab(location.pathname.includes('/indicadores') ? 'indicadores' : 'geral');
+    }, [location.pathname]);
 
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -47,7 +57,6 @@ export function TeamDashboard() {
     const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
     // Tabs & Indicators State
-    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores'>('geral');
     const [yearlyIndicators, setYearlyIndicators] = useState<any[]>([]);
     const [indicatorsYear, setIndicatorsYear] = useState<string>(new Date().getFullYear().toString());
     const [isEditingIndicators, setIsEditingIndicators] = useState(false);
@@ -547,13 +556,13 @@ export function TeamDashboard() {
                 {/* TABS HEADERS */}
                 <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px' }}>
                     <button
-                        onClick={() => setActiveTab('geral')}
+                        onClick={() => { setActiveTab('geral'); navigate('/app/dashboard'); }}
                         style={{ background: 'none', border: 'none', borderBottom: activeTab === 'geral' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'geral' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'geral' ? 1 : 0.6 }}>
                         <LayoutDashboard size={20} />
                         Visão Geral
                     </button>
                     <button
-                        onClick={() => setActiveTab('indicadores')}
+                        onClick={() => { setActiveTab('indicadores'); navigate('/app/indicadores'); }}
                         style={{ background: 'none', border: 'none', borderBottom: activeTab === 'indicadores' ? '3px solid #0ea5e9' : '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: activeTab === 'indicadores' ? '#0f172a' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: activeTab === 'indicadores' ? 1 : 0.6 }}>
                         <BarChart2 size={20} />
                         Indicadores
