@@ -194,7 +194,7 @@ export function CorporateDashboard() {
           >
             <ArrowLeft size={16} /> Voltar
           </button>
-          {role === 'MANAGER' && !isEditing && (
+          {role === 'TEAM' && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
               style={{ background: '#2563eb', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, transition: 'all 0.2s' }}
@@ -202,7 +202,7 @@ export function CorporateDashboard() {
               <Edit size={16} /> Editar Dados
             </button>
           )}
-          {role === 'MANAGER' && isEditing && (
+          {role === 'TEAM' && isEditing && (
             <>
               <button
                 onClick={() => {
