@@ -71,7 +71,7 @@ export const teamService = {
 
 // Serviço de gerenciamento de times (apenas para gestor)
 export const managerTeamsService = {
-  async listTeams(): Promise<{ id: string; name: string; email: string; createdAt: string }[]> {
+  async listTeams(): Promise<{ id: string; name: string; email: string; createdAt: string; ticketCount?: number }[]> {
     const response = await api.get('/manager/teams');
     return response.data;
   },

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { loadTeams, loadTeamTickets } from '../utils/storage';
+import { loadTeams, loadTeamTickets, loadTeamChamados } from '../utils/storage';
 import { managerTeamsService } from '../services/teamService';
 import type { Team } from '../utils/types';
 import { LogOut, Settings, Users, BarChart3, ChevronRight, Plus } from 'lucide-react';
@@ -24,13 +24,15 @@ export function ManagerOverview() {
                 // Tenta puxar do banco real
                 const apiTeams = await managerTeamsService.listTeams();
 
-                // Monta array populando com tickets do localStorage de cada um
                 const teamsWithStats: TeamWithStats[] = apiTeams.map(team => {
                     const tickets = loadTeamTickets(team.id);
+                    const chamadosData = loadTeamChamados(team.id);
+                    const chamadosCount = chamadosData?.chamados?.length || 0;
+
                     return {
                         ...team,
                         createdAt: typeof team.createdAt === 'string' ? new Date(team.createdAt).getTime() : team.createdAt,
-                        ticketCount: tickets.length
+                        ticketCount: team.ticketCount !== undefined ? team.ticketCount : (tickets.length + chamadosCount)
                     } as TeamWithStats;
                 });
                 setTeams(teamsWithStats);
@@ -40,7 +42,9 @@ export function ManagerOverview() {
                 const rawTeams = loadTeams();
                 const teamsWithStats: TeamWithStats[] = rawTeams.map(team => {
                     const tickets = loadTeamTickets(team.id);
-                    return { ...team, ticketCount: tickets.length };
+                    const chamadosData = loadTeamChamados(team.id);
+                    const chamadosCount = chamadosData?.chamados?.length || 0;
+                    return { ...team, ticketCount: tickets.length + chamadosCount };
                 });
                 setTeams(teamsWithStats);
             } finally {

@@ -7,9 +7,26 @@ export const listTeams = async (req: Request, res: Response) => {
   try {
     const teams = await prisma.user.findMany({
       where: { role: 'TEAM' },
-      select: { id: true, name: true, email: true, createdAt: true }
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        _count: {
+          select: { tickets: true, chamados: true }
+        }
+      }
     });
-    res.json(teams);
+
+    const mappedTeams = teams.map(t => ({
+      id: t.id,
+      name: t.name,
+      email: t.email,
+      createdAt: t.createdAt,
+      ticketCount: t._count.tickets + t._count.chamados
+    }));
+
+    res.json(mappedTeams);
   } catch (error) {
     console.error('List teams error:', error);
     res.status(500).json({ error: 'Internal server error' });
