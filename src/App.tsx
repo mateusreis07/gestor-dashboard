@@ -40,6 +40,11 @@ function App() {
               <TeamDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/app/team/:teamId/indicadores" element={
+            <ProtectedRoute>
+              <TeamDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/app/team/:teamId/import" element={
             <ProtectedRoute>
               <ImportConfiguration />
@@ -56,6 +61,11 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/app/institucional" element={
+            <ProtectedRoute>
+              <CorporateDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/app/team/:teamId/institucional" element={
             <ProtectedRoute>
               <CorporateDashboard />
             </ProtectedRoute>

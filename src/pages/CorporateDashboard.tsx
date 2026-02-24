@@ -1,20 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList, Cell } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
-import type { CorporateData, MonthlyCalls } from '../utils/corporateData';
+import type { CorporateData } from '../utils/corporateData';
 
 export function CorporateDashboard() {
   const { user, role, logout } = useAuth();
   const navigate = useNavigate();
+  const { teamId: paramsTeamId } = useParams<{ teamId: string }>();
 
   const [data, setData] = useState<CorporateData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<CorporateData | null>(null);
 
-  const teamId = localStorage.getItem('gestor_current_team_id');
+  const teamId = paramsTeamId || localStorage.getItem('gestor_current_team_id');
   const teamName = localStorage.getItem('gestor_current_team_name') || 'Equipe';
 
   useEffect(() => {
@@ -156,7 +157,7 @@ export function CorporateDashboard() {
               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
             />
             <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={40}>
-              <LabelList dataKey="value" position="top" fill="#64748b" fontSize={10} formatter={(v: number) => v > 0 ? v : ''} />
+              <LabelList dataKey="value" position="top" fill="#64748b" fontSize={10} formatter={(v: any) => v > 0 ? v : ''} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -232,19 +233,17 @@ export function CorporateDashboard() {
 
         <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px', marginTop: '16px' }}>
           <button
-            onClick={() => navigate(role === 'MANAGER' ? '/app/overview' : '/app/dashboard')}
+            onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}` : '/app/overview') : '/app/dashboard')}
             style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
             <LayoutDashboard size={20} />
             Visão Geral
           </button>
-          {role !== 'MANAGER' && (
-            <button
-              onClick={() => navigate('/app/indicadores')}
-              style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
-              <BarChart2 size={20} />
-              Indicadores
-            </button>
-          )}
+          <button
+            onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}/indicadores` : '/app/overview') : '/app/indicadores')}
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
+            <BarChart2 size={20} />
+            Indicadores
+          </button>
           <button
             onClick={() => navigate('/app/institucional')}
             style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 1 }}>
