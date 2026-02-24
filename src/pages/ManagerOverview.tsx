@@ -152,9 +152,9 @@ export function ManagerOverview() {
                                     <div className={styles.cardTop}>
                                         <div
                                             className={styles.cardAvatar}
-                                            style={{ background: colors.gradient }}
+                                            style={team.avatarUrl ? { background: `url(${team.avatarUrl}) center/cover` } : { background: colors.gradient }}
                                         >
-                                            {team.name.substring(0, 2).toUpperCase()}
+                                            {!team.avatarUrl && team.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <ChevronRight size={20} className={styles.cardArrow} />
                                     </div>

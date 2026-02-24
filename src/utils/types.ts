@@ -39,6 +39,7 @@ export interface Team {
   email: string;
   password?: string; // Optional because we might not want to expose it in all contexts, but for now we store it.
   createdAt: number;
+  avatarUrl?: string | null;
 }
 
 export interface Manager {

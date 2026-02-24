@@ -422,11 +422,12 @@ export function TeamDashboard() {
                         )}
                         <div style={{
                             width: '48px', height: '48px', borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                            background: currentTeam.avatarUrl ? `url(${currentTeam.avatarUrl}) center/cover` : 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                            color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                            overflow: 'hidden', flexShrink: 0
                         }}>
-                            <LayoutDashboard size={24} />
+                            {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
                         </div>
 
                         <div>
