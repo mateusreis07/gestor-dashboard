@@ -20,7 +20,7 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, FolderKanban, GraduationCap, BarChart2 } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2 } from 'lucide-react';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 
 export function TeamDashboard() {
@@ -429,22 +429,32 @@ export function TeamDashboard() {
 
                     {/* Right: Actions */}
                     {/* Right: Actions */}
-                    {role === 'TEAM' && (
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button
-                                onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
-                                className="btn-secondary"
-                                title="Configurar Importação"
-                            >
-                                <Settings size={18} />
-                                <span className="desktop-only">Configurar</span>
-                            </button>
-                            <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-                            <button onClick={logout} className="btn-icon-secondary" title="Sair">
-                                <LogOut size={18} color="#ef4444" />
-                            </button>
-                        </div>
-                    )}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={() => navigate('/app/institucional')}
+                            className="btn-secondary"
+                            title="Visão Institucional"
+                        >
+                            <Building2 size={18} />
+                            <span className="desktop-only">Institucional</span>
+                        </button>
+                        {role === 'TEAM' && (
+                            <>
+                                <button
+                                    onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
+                                    className="btn-secondary"
+                                    title="Configurar Importação"
+                                >
+                                    <Settings size={18} />
+                                    <span className="desktop-only">Configurar</span>
+                                </button>
+                                <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
+                                <button onClick={logout} className="btn-icon-secondary" title="Sair">
+                                    <LogOut size={18} color="#ef4444" />
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* FILTER TOOLBAR */}

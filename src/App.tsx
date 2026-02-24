@@ -11,6 +11,7 @@ import { TeamDashboard } from './pages/TeamDashboard';
 import './App.css';
 
 import { ImportConfiguration } from './pages/ImportConfiguration';
+import { CorporateDashboard } from './pages/CorporateDashboard';
 
 function App() {
   return (
@@ -47,6 +48,11 @@ function App() {
           <Route path="/app/dashboard" element={
             <ProtectedRoute>
               <TeamDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/app/institucional" element={
+            <ProtectedRoute>
+              <CorporateDashboard />
             </ProtectedRoute>
           } />
 
