@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2, Loader2 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList, Cell } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
+import { corporateService } from '../services/corporateService';
 import type { CorporateData } from '../utils/corporateData';
 
 export function CorporateDashboard() {
@@ -19,16 +20,44 @@ export function CorporateDashboard() {
   const teamName = localStorage.getItem('gestor_current_team_name') || 'Equipe';
 
   useEffect(() => {
-    const loaded = loadCorporateData();
-    setData(loaded);
-    setEditData(JSON.parse(JSON.stringify(loaded))); // Deep copy for edit
+    const fetchData = async () => {
+      try {
+        const apiData = await corporateService.getCorporateData();
+        if (apiData) {
+          setData(apiData);
+          setEditData(JSON.parse(JSON.stringify(apiData)));
+        } else {
+          // Fallback to local defaults if nothing on backend yet
+          const loaded = loadCorporateData();
+          setData(loaded);
+          setEditData(JSON.parse(JSON.stringify(loaded)));
+        }
+      } catch (err) {
+        console.error('Failed to fetch corporate data, using local fallback:', err);
+        const loaded = loadCorporateData();
+        setData(loaded);
+        setEditData(JSON.parse(JSON.stringify(loaded)));
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editData) {
-      saveCorporateData(editData);
-      setData(editData);
-      setIsEditing(false);
+      try {
+        await corporateService.updateCorporateData(editData);
+        // Backup via localStorage too
+        saveCorporateData(editData);
+        setData(editData);
+        setIsEditing(false);
+      } catch (err) {
+        console.error('Failed to save to API:', err);
+        alert('Erro ao salvar os institucionais no banco. Tentando salvar localmente...');
+        saveCorporateData(editData);
+        setData(editData);
+        setIsEditing(false);
+      }
     }
   };
 

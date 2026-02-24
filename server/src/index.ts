@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import authRoutes from './routes/authRoutes';
 import teamRoutes from './routes/teamRoutes';
 import teamsRoutes from './routes/teamsRoutes';
+import corporateRoutes from './routes/corporateRoutes';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/manager/teams', teamsRoutes);
+app.use('/api/corporate', corporateRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Gestor Dashboard API is running. Use /api/auth/login or /api/auth/register.' });

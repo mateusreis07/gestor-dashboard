@@ -87,3 +87,10 @@ model MonthlyData {
 
   @@unique([userId, month]) // Ensure one stat record per month per team
 }
+
+model CorporateData {
+  id        Int      @id @default(1)
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
