@@ -1027,10 +1027,9 @@ export function TeamDashboard() {
                                         onChange={(e) => setIndicatorsYear(e.target.value)}
                                         style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
                                     >
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                        <option value="2027">2027</option>
+                                        {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
                                     </select>
                                 </div>
 
