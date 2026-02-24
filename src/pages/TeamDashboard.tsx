@@ -53,8 +53,8 @@ export function TeamDashboard() {
     const [isEditingStats, setIsEditingStats] = useState(false);
 
     // Month Based View State
+    // Month Based View State
     const [currentViewMonth, setCurrentViewMonth] = useState<string>('');
-    const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
     // Tabs & Indicators State
     const [yearlyIndicators, setYearlyIndicators] = useState<any[]>([]);
@@ -111,15 +111,16 @@ export function TeamDashboard() {
         setIsFetchingMonths(true);
         teamService.getDashboard(currentTeam.id).then(data => {
             if (data.availableMonths && data.availableMonths.length > 0) {
-                setAvailableMonths(data.availableMonths);
                 // Select latest month by default if none selected
                 if (!currentViewMonth) setCurrentViewMonth(data.availableMonths[0]);
             } else {
                 // Se não tiver meses no banco, tenta carregar do localStorage como fallback (migração)
                 const localMonths = getAvailableMonths(currentTeam.id);
                 if (localMonths.length > 0) {
-                    setAvailableMonths(localMonths);
                     if (!currentViewMonth) setCurrentViewMonth(localMonths[0]);
+                } else if (!currentViewMonth) {
+                    // Fallback to current month if no data exists
+                    setCurrentViewMonth(new Date().toISOString().slice(0, 7));
                 }
             }
         }).catch(err => {
@@ -475,21 +476,43 @@ export function TeamDashboard() {
 
                         {/* Left: Summary Stats - REMOVED per user request */}
                         <div>
-                            {availableMonths.length > 0 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                                    <Calendar size={16} color="#64748b" />
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
-                                    <select
-                                        value={currentViewMonth}
-                                        onChange={(e) => setCurrentViewMonth(e.target.value)}
-                                        style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem' }}
-                                    >
-                                        {availableMonths.map(m => (
-                                            <option key={m} value={m}>{m}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'white', padding: '6px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <Calendar size={16} color="#64748b" style={{ marginRight: '4px' }} />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês:</span>
+
+                                <select
+                                    className="month-picker-select"
+                                    value={currentViewMonth ? currentViewMonth.split('-')[1] : '01'}
+                                    onChange={(e) => setCurrentViewMonth(`${currentViewMonth ? currentViewMonth.split('-')[0] : new Date().getFullYear()}-${e.target.value}`)}
+                                    style={{ border: 'none', background: '#f8fafc', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem', padding: '4px 8px', borderRadius: '6px' }}
+                                >
+                                    <option value="01">Janeiro</option>
+                                    <option value="02">Fevereiro</option>
+                                    <option value="03">Março</option>
+                                    <option value="04">Abril</option>
+                                    <option value="05">Maio</option>
+                                    <option value="06">Junho</option>
+                                    <option value="07">Julho</option>
+                                    <option value="08">Agosto</option>
+                                    <option value="09">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+
+                                <span style={{ fontWeight: 700, color: '#64748b', fontSize: '0.9rem', padding: '0 4px' }}>de</span>
+
+                                <select
+                                    className="year-picker-select"
+                                    value={currentViewMonth ? currentViewMonth.split('-')[0] : new Date().getFullYear().toString()}
+                                    onChange={(e) => setCurrentViewMonth(`${e.target.value}-${currentViewMonth ? currentViewMonth.split('-')[1] : '01'}`)}
+                                    style={{ border: 'none', background: '#f8fafc', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '0.9rem', padding: '4px 8px', borderRadius: '6px' }}
+                                >
+                                    {Array.from({ length: 16 }, (_, i) => 2015 + i).map(y => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {/* Right: Filters */}
