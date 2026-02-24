@@ -429,7 +429,7 @@ export function CorporateDashboard() {
                     formatter={(value: any) => [Number(value).toLocaleString('pt-BR'), 'Total']}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
-                    {yearlyData.map((entry, index) => (
+                    {yearlyData.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
                     ))}
                     <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: any) => Number(v).toLocaleString('pt-BR')} />
