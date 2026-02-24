@@ -170,71 +170,49 @@ export function CorporateDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '40px' }}>
-      {/* ===== HEADER CONDITIONING ===== */}
-      {role === 'MANAGER' ? (
-        <header style={{
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between',
-          alignItems: 'center', color: 'white', position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '12px' }}>
-              <Building2 color="white" size={24} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>Visão Institucional</h1>
-              {user && (
-                <p style={{ fontSize: '0.85rem', color: '#cbd5e1', margin: '4px 0 0 0' }}>
-                  Olá, <strong>{user.name}</strong>
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              onClick={() => navigate('/app/overview')}
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, transition: 'all 0.2s' }}
-            >
-              <ArrowLeft size={16} /> Voltar
-            </button>
-          </div>
-        </header>
-      ) : (
-        <div style={{ padding: '32px 48px', maxWidth: '1600px', margin: '0 auto' }}>
-          <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              background: 'white', padding: '16px 24px', borderRadius: '16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
-                }}>
-                  <LayoutDashboard size={24} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{
-                      fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
-                      color: '#64748b', textTransform: 'uppercase',
-                      background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
-                    }}>
-                      Portal do Time
-                    </span>
-                  </div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
-                    {teamName}
-                  </h1>
-                </div>
+      {/* ===== HEADER ===== */}
+      <div style={{ padding: '32px 48px', maxWidth: '1600px', margin: '0 auto' }}>
+        <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: 'white', padding: '16px 24px', borderRadius: '16px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '12px',
+                background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+              }}>
+                <LayoutDashboard size={24} />
               </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
+                    color: '#64748b', textTransform: 'uppercase',
+                    background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
+                  }}>
+                    {role === 'MANAGER' ? 'Gestor Dashboard' : 'Portal do Time'}
+                  </span>
+                </div>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
+                  {role === 'MANAGER' ? (user ? `Olá, ${user.name}` : 'Bem-vindo') : teamName}
+                </h1>
+              </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {role === 'MANAGER' ? (
+                <button
+                  onClick={() => navigate('/app/overview')}
+                  style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                >
+                  <ArrowLeft size={18} />
+                  <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Voltar</span>
+                </button>
+              ) : (
                 <button
                   onClick={() => navigate(teamId ? `/app/team/${teamId}/import` : '/app/dashboard')}
                   style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
@@ -242,38 +220,41 @@ export function CorporateDashboard() {
                   <Settings size={18} />
                   <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Configurar</span>
                 </button>
-                <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-                <button onClick={() => { logout(); navigate('/welcome'); }} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Sair">
-                  <LogOut size={18} color="#ef4444" />
-                </button>
-              </div>
-            </div>
-          </header>
+              )}
 
-          <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px', marginTop: '16px' }}>
+              <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
+              <button onClick={() => { logout(); navigate('/welcome'); }} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Sair">
+                <LogOut size={18} color="#ef4444" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px', marginTop: '16px' }}>
+          <button
+            onClick={() => navigate(role === 'MANAGER' ? '/app/overview' : '/app/dashboard')}
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
+            <LayoutDashboard size={20} />
+            Visão Geral
+          </button>
+          {role !== 'MANAGER' && (
             <button
-              onClick={() => navigate('/app/dashboard')}
-              style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
-              <LayoutDashboard size={20} />
-              Visão Geral
-            </button>
-            <button
-              onClick={() => navigate('/app/dashboard')}
+              onClick={() => navigate('/app/indicadores')}
               style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
               <BarChart2 size={20} />
               Indicadores
             </button>
-            <button
-              onClick={() => navigate('/app/institucional')}
-              style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 1 }}>
-              <Building2 size={20} />
-              Institucional
-            </button>
-          </div>
+          )}
+          <button
+            onClick={() => navigate('/app/institucional')}
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 1 }}>
+            <Building2 size={20} />
+            Institucional
+          </button>
         </div>
-      )}
+      </div>
 
-      <main style={{ maxWidth: '1200px', margin: role === 'MANAGER' ? '32px auto' : '0 auto 32px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto 32px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
         {/* Action Bar for Institutional View (Team Editing Features) */}
         {role === 'TEAM' ? (
@@ -332,10 +313,10 @@ export function CorporateDashboard() {
 
           {!isEditing ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', rowGap: '48px' }}>
-              <MonthlyBarChart title="2023" data={chartData2023} color={YEAR_COLORS[0]} chartData={chartData2023} />
-              <MonthlyBarChart title="2024" data={chartData2024} color={YEAR_COLORS[1]} chartData={chartData2024} />
-              <MonthlyBarChart title="2025" data={chartData2025} color={YEAR_COLORS[2]} chartData={chartData2025} />
-              <MonthlyBarChart title="2026" data={chartData2026} color={YEAR_COLORS[3]} chartData={chartData2026} />
+              <MonthlyBarChart title="2023" color={YEAR_COLORS[0]} chartData={chartData2023} />
+              <MonthlyBarChart title="2024" color={YEAR_COLORS[1]} chartData={chartData2024} />
+              <MonthlyBarChart title="2025" color={YEAR_COLORS[2]} chartData={chartData2025} />
+              <MonthlyBarChart title="2026" color={YEAR_COLORS[3]} chartData={chartData2026} />
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', overflowX: 'auto' }}>
@@ -374,13 +355,13 @@ export function CorporateDashboard() {
                   <Tooltip
                     cursor={{ fill: 'rgba(0,0,0,0.04)' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                    formatter={(value: number) => [value.toLocaleString('pt-BR'), 'Total']}
+                    formatter={(value: any) => [Number(value).toLocaleString('pt-BR'), 'Total']}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
                     {yearlyData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
                     ))}
-                    <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: number) => v.toLocaleString('pt-BR')} />
+                    <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: any) => Number(v).toLocaleString('pt-BR')} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
