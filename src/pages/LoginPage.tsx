@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, User, Users } from 'lucide-react';
+import { LogIn, User, Users, ArrowLeft, BarChart3 } from 'lucide-react';
+import styles from './LoginPage.module.css';
 
 export function LoginPage() {
     const { role: roleParam } = useParams<{ role: string }>();
@@ -48,91 +49,95 @@ export function LoginPage() {
     const handleBack = () => navigate('/welcome');
 
     return (
-        <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            height: '100vh', background: 'linear-gradient(135deg, #f0f2f5 0%, #e6f7ff 100%)', padding: '20px'
-        }}>
-            <div style={{
-                background: 'white', padding: '40px', borderRadius: '16px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.05)', width: '100%', maxWidth: '400px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                position: 'relative'
-            }}>
-                <button
-                    onClick={handleBack}
-                    style={{
-                        position: 'absolute', top: '20px', left: '20px', border: 'none', background: 'transparent',
-                        color: '#9ca3af', cursor: 'pointer', fontSize: '0.875rem'
-                    }}
-                >
-                    &larr; Voltar
-                </button>
+        <div className={styles.container}>
+            {/* Left side: branding & typography */}
+            <div className={styles.heroSection}>
+                <div className={styles.gridOverlay}></div>
+                <div className={styles.noiseOverlay}></div>
 
-                <div style={{
-                    background: role === 'manager' ? '#e6f7ff' : '#f6ffed',
-                    padding: '12px', borderRadius: '50%', marginBottom: '20px',
-                    color: role === 'manager' ? '#1890ff' : '#52c41a'
-                }}>
-                    {role === 'manager' ? <User size={32} /> : <Users size={32} />}
+                <div className={styles.brandWrapper}>
+                    <div className={styles.logo} onClick={handleBack}>
+                        <BarChart3 size={32} color={role === 'manager' ? '#38bdf8' : '#4ade80'} />
+                        <span className={styles.logoText}>GestorOS</span>
+                    </div>
                 </div>
 
-                <h1 style={{ marginBottom: '8px', fontSize: '1.5rem', fontWeight: 700, color: '#1f2937' }}>
-                    Login {role === 'manager' ? 'Gestor' : 'Time'}
-                </h1>
+                <div className={styles.heroContent}>
+                    <h1 className={styles.headline}>
+                        Acesso
+                        <br />
+                        <span className={role === 'manager' ? styles.gradientTextManager : styles.gradientTextTeam}>
+                            {role === 'manager' ? 'Autenticado' : 'Operacional'}
+                        </span>
+                    </h1>
+                    <p className={styles.heroSub}>
+                        {role === 'manager'
+                            ? 'Insira suas credenciais corporativas para acessar o painel de diretoria e gerenciar indicadores globais.'
+                            : 'Identifique-se para atualizar painéis setoriais, dados locais e reportar os chamados da sua unidade.'}
+                    </p>
+                </div>
 
-                <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-                    <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                            E-mail
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            style={{
-                                width: '100%', padding: '10px 12px', borderRadius: '8px',
-                                border: '1px solid #d1d5db', outline: 'none', fontSize: '0.9rem',
-                                boxSizing: 'border-box'
-                            }}
-                        />
+                <div className={styles.footerInfo}>
+                    <span>&copy; {new Date().getFullYear()} Gestor System. Ambiente Seguro.</span>
+                </div>
+            </div>
+
+            {/* Right side: Login form */}
+            <div className={styles.loginSection}>
+                <button onClick={handleBack} className={styles.backButton}>
+                    <ArrowLeft size={16} />
+                    Voltar
+                </button>
+
+                <div className={styles.formContainer}>
+                    <div className={`${styles.roleIconWrapper} ${role === 'manager' ? styles.manager : styles.team}`}>
+                        {role === 'manager' ? <User size={28} color="#38bdf8" /> : <Users size={28} color="#4ade80" />}
                     </div>
 
-                    <div style={{ marginBottom: '24px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                            Senha
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            style={{
-                                width: '100%', padding: '10px 12px', borderRadius: '8px',
-                                border: '1px solid #d1d5db', outline: 'none', fontSize: '0.9rem',
-                                boxSizing: 'border-box'
-                            }}
-                        />
-                    </div>
+                    <h2 className={styles.formTitle}>
+                        Portal do {role === 'manager' ? 'Gestor' : 'Time'}
+                    </h2>
 
-                    {error && (
-                        <div style={{ marginBottom: '16px', color: '#ef4444', fontSize: '0.875rem', textAlign: 'center' }}>
-                            {error}
+                    <form onSubmit={handleSubmit}>
+                        <div className={styles.inputGroup}>
+                            <label>E-mail Corporativo</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                className={`${styles.inputField} ${role === 'manager' ? styles.managerFocus : styles.teamFocus}`}
+                                placeholder="usuario@email.com"
+                                required
+                            />
                         </div>
-                    )}
 
-                    <button
-                        type="submit"
-                        style={{
-                            width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
-                            background: role === 'manager' ? '#1890ff' : '#52c41a',
-                            color: 'white', fontWeight: 600, fontSize: '0.95rem',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                            transition: 'opacity 0.2s'
-                        }}
-                    >
-                        <LogIn size={18} />
-                        Entrar
-                    </button>
-                </form>
+                        <div className={styles.inputGroup}>
+                            <label>Senha</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className={`${styles.inputField} ${role === 'manager' ? styles.managerFocus : styles.teamFocus}`}
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+
+                        {error && (
+                            <div className={styles.errorMessage}>
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className={`${styles.submitButton} ${role === 'manager' ? styles.manager : styles.team}`}
+                        >
+                            <LogIn size={18} />
+                            Fazer Login
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );
