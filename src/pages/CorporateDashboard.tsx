@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, LineChart, ArrowLeft, GraduationCap } from 'lucide-react';
-import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList, Cell } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
-import type { CorporateData } from '../utils/corporateData';
+import type { CorporateData, MonthlyCalls } from '../utils/corporateData';
 
 export function CorporateDashboard() {
   const { user, role, logout } = useAuth();
@@ -28,20 +28,39 @@ export function CorporateDashboard() {
     }
   };
 
-  // Prepare chart data
-  const chartData = useMemo(() => {
-    if (!data) return [];
-    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-    const ptMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-    return months.map((m, idx) => ({
-      name: ptMonths[idx],
-      '2023': data.calls2023[m as keyof typeof data.calls2023] || 0,
-      '2024': data.calls2024[m as keyof typeof data.calls2024] || 0,
-      '2025': data.calls2025[m as keyof typeof data.calls2025] || 0,
-      '2026': data.calls2026[m as keyof typeof data.calls2026] || 0,
-    }));
+  const totals = useMemo(() => {
+    if (!data) return { 2023: 0, 2024: 0, 2025: 0, 2026: 0 };
+    return {
+      2023: Object.values(data.calls2023).reduce((a, b) => a + Number(b), 0),
+      2024: Object.values(data.calls2024).reduce((a, b) => a + Number(b), 0),
+      2025: Object.values(data.calls2025).reduce((a, b) => a + Number(b), 0),
+      2026: Object.values(data.calls2026).reduce((a, b) => a + Number(b), 0),
+    };
   }, [data]);
+
+  const ptMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const enMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+  const getYearData = (yearData: any) => {
+    return enMonths.map((m, idx) => ({
+      name: ptMonths[idx],
+      value: yearData[m] || 0
+    }));
+  };
+
+  const chartData2023 = useMemo(() => data ? getYearData(data.calls2023) : [], [data]);
+  const chartData2024 = useMemo(() => data ? getYearData(data.calls2024) : [], [data]);
+  const chartData2025 = useMemo(() => data ? getYearData(data.calls2025) : [], [data]);
+  const chartData2026 = useMemo(() => data ? getYearData(data.calls2026) : [], [data]);
+
+  const yearlyData = useMemo(() => {
+    return [
+      { name: '2023', value: totals[2023] },
+      { name: '2024', value: totals[2024] },
+      { name: '2025', value: totals[2025] },
+      { name: '2026', value: totals[2026] }
+    ];
+  }, [totals]);
 
   const handleEditMonth = (year: 'calls2023' | 'calls2024' | 'calls2025' | 'calls2026', month: string, value: string) => {
     if (!editData) return;
@@ -91,14 +110,63 @@ export function CorporateDashboard() {
     setEditData({ ...editData, trainings: newTrainings });
   };
 
-  if (!data) return <div>Carregando...</div>;
+  const getGrowth = (current: number, previous: number) => {
+    if (previous === 0) return 0;
+    return (((current - previous) / previous) * 100).toFixed(1);
+  };
 
-  const ptMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const enMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const KPICard = ({ year, total, previousTotal }: { year: string, total: number, previousTotal: number | null }) => {
+    const growth = previousTotal !== null ? getGrowth(total, previousTotal) : null;
+    const isPositive = growth ? Number(growth) > 0 : null;
+
+    return (
+      <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+        <h3 style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 12px 0', fontWeight: 500 }}>Chamados {year}</h3>
+        <p style={{ fontSize: '2.5rem', fontWeight: 700, color: '#14b8a6', margin: 0, letterSpacing: '-1px' }}>
+          {total.toLocaleString('pt-BR')}
+        </p>
+        {growth !== null && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px', fontSize: '0.9rem', fontWeight: 500 }}>
+            {isPositive ? (
+              <span style={{ color: '#10b981' }}>↗ +{growth}%</span>
+            ) : (
+              <span style={{ color: '#ef4444' }}>↘ {growth}%</span>
+            )}
+            <span style={{ color: '#94a3b8', fontWeight: 400 }}>vs ano anterior</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const MonthlyBarChart = ({ chartData, title, color }: { chartData: any[], title: string, color: string }) => (
+    <div style={{ padding: '8px 0', flex: 1, minWidth: '45%' }}>
+      <h4 style={{ fontSize: '1rem', color: '#64748b', marginBottom: '24px', fontWeight: 500 }}>{title}</h4>
+      <div style={{ height: '240px', width: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dy={10} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <Tooltip
+              cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+            />
+            <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={40}>
+              <LabelList dataKey="value" position="top" fill="#64748b" fontSize={10} formatter={(v: number) => v > 0 ? v : ''} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+
+  const YEAR_COLORS = ['#a855f7', '#f59e0b', '#14b8a6', '#0ea5e9']; // 2023, 2024, 2025, 2026
+
+  if (!data) return <div>Carregando...</div>;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '40px' }}>
-      {/* Header Idêntico ao Overview */}
       <header style={{
         background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         padding: '20px 32px', display: 'flex', justifyContent: 'space-between',
@@ -139,7 +207,7 @@ export function CorporateDashboard() {
               <button
                 onClick={() => {
                   setIsEditing(false);
-                  setEditData(JSON.parse(JSON.stringify(data))); // revert
+                  setEditData(JSON.parse(JSON.stringify(data)));
                 }}
                 style={{ background: '#ef4444', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
               >
@@ -158,31 +226,26 @@ export function CorporateDashboard() {
 
       <main style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-        {/* 1. Evolução Anual (Gráfico) */}
-        <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-            <LineChart color="#4f46e5" size={24} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Evolução de Chamados (2023 - 2026)</h2>
+        {/* KPIs */}
+        {!isEditing && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+            <KPICard year="2023" total={totals[2023]} previousTotal={null} />
+            <KPICard year="2024" total={totals[2024]} previousTotal={totals[2023]} />
+            <KPICard year="2025" total={totals[2025]} previousTotal={totals[2024]} />
+            <KPICard year="2026" total={totals[2026]} previousTotal={totals[2025]} />
           </div>
+        )}
+
+        {/* Charts: Monthly */}
+        <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Chamados por Mês</h2>
 
           {!isEditing ? (
-            <div style={{ height: '400px', width: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={-10} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                    itemStyle={{ fontWeight: 600 }}
-                  />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="2023" name="2023" stroke="#94a3b8" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="2024" name="2024" stroke="#60a5fa" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="2025" name="2025" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="2026" name="2026" stroke="#ec4899" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                </RechartsLineChart>
-              </ResponsiveContainer>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', rowGap: '48px' }}>
+              <MonthlyBarChart title="2023" data={chartData2023} color={YEAR_COLORS[0]} chartData={chartData2023} />
+              <MonthlyBarChart title="2024" data={chartData2024} color={YEAR_COLORS[1]} chartData={chartData2024} />
+              <MonthlyBarChart title="2025" data={chartData2025} color={YEAR_COLORS[2]} chartData={chartData2025} />
+              <MonthlyBarChart title="2026" data={chartData2026} color={YEAR_COLORS[3]} chartData={chartData2026} />
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', overflowX: 'auto' }}>
@@ -207,6 +270,33 @@ export function CorporateDashboard() {
             </div>
           )}
         </section>
+
+        {/* Charts: Yearly Total */}
+        {!isEditing && (
+          <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Total de Chamados por Ano</h2>
+            <div style={{ height: '350px', width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={yearlyData} margin={{ top: 30, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 500 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                    formatter={(value: number) => [value.toLocaleString('pt-BR'), 'Total']}
+                  />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                    {yearlyData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
+                    ))}
+                    <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: number) => v.toLocaleString('pt-BR')} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
           {/* 2. Projetos Realizados */}
