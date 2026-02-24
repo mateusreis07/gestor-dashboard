@@ -3,11 +3,18 @@ import { prisma } from '../prisma';
 import { supabase, supabaseAdmin } from '../lib/supabase';
 
 async function uploadAvatar(userId: string, base64: string): Promise<string | null> {
-  if (!supabaseAdmin) return null;
+  const client = supabaseAdmin || supabase;
+
+  if (!client) {
+    console.warn('No Supabase client available for uploadAvatar');
+    return null;
+  }
 
   try {
-    // try to create bucket 'avatars'
-    await supabaseAdmin.storage.createBucket('avatars', { public: true }).catch(() => { });
+    // try to create bucket 'avatars' (only admin might have permission)
+    if (supabaseAdmin) {
+      await supabaseAdmin.storage.createBucket('avatars', { public: true }).catch(() => { });
+    }
 
     const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     if (!matches || matches.length !== 3) {
@@ -18,7 +25,7 @@ async function uploadAvatar(userId: string, base64: string): Promise<string | nu
     const ext = contentType.split('/')[1] || 'png';
     const filename = `${userId}-${Date.now()}.${ext}`;
 
-    const { error } = await supabaseAdmin.storage
+    const { error } = await client.storage
       .from('avatars')
       .upload(filename, buffer, {
         contentType,
@@ -30,7 +37,7 @@ async function uploadAvatar(userId: string, base64: string): Promise<string | nu
       return null;
     }
 
-    const { data } = supabaseAdmin.storage.from('avatars').getPublicUrl(filename);
+    const { data } = client.storage.from('avatars').getPublicUrl(filename);
     return data.publicUrl;
   } catch (error) {
     console.error('Upload avatar error:', error);
