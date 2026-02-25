@@ -260,6 +260,7 @@
 
 .managerCard:hover .iconBox svg {
     color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 .managerCard:hover .arrowIcon {
@@ -278,6 +279,7 @@
 
 .teamCard:hover .iconBoxTeam svg {
     color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 .teamCard:hover .arrowIcon {
