@@ -338,18 +338,23 @@ export function CorporateDashboard() {
 
         {/* Action Bar for Institutional View (Team Editing Features) */}
         {role === 'TEAM' ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '12px 24px', borderRadius: '12px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.8)', padding: '8px', borderRadius: '8px' }}>
-                <Building2 color="#3b82f6" size={20} />
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                <Building2 size={24} />
               </div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Dados Institucionais</h2>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dados Institucionais</h2>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Gerenciamento de informações oficiais do setor</p>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  style={{ background: '#2563eb', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, transition: 'all 0.2s' }}
+                  style={{ background: '#2563eb', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#1d4ed8'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   <Edit size={16} /> Editar Dados
                 </button>
@@ -361,13 +366,13 @@ export function CorporateDashboard() {
                       setIsEditing(false);
                       setEditData(JSON.parse(JSON.stringify(data)));
                     }}
-                    style={{ background: '#ef4444', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+                    style={{ background: '#ef4444', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
                   >
                     <X size={16} /> Cancelar
                   </button>
                   <button
                     onClick={handleSave}
-                    style={{ background: '#10b981', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+                    style={{ background: '#10b981', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
                   >
                     <Save size={16} /> Salvar
                   </button>
