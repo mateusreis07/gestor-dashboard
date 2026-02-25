@@ -15,7 +15,7 @@ export function LandingPage({ onSelectRole }: Props) {
 
                 <div className={styles.brandWrapper}>
                     <div className={styles.logo}>
-                        <BarChart3 size={32} color="#38bdf8" />
+                        <BarChart3 size={32} color="#0ea5e9" />
                         <span className={styles.logoText}>GestorOS</span>
                     </div>
                 </div>
@@ -31,15 +31,15 @@ export function LandingPage({ onSelectRole }: Props) {
 
                     <div className={styles.features}>
                         <div className={styles.featureItem}>
-                            <ShieldCheck size={20} color="#38bdf8" />
+                            <ShieldCheck size={20} color="#0ea5e9" />
                             <span>Alta Segurança</span>
                         </div>
                         <div className={styles.featureItem}>
-                            <Database size={20} color="#38bdf8" />
+                            <Database size={20} color="#0ea5e9" />
                             <span>Controle de Dados</span>
                         </div>
                         <div className={styles.featureItem}>
-                            <Zap size={20} color="#38bdf8" />
+                            <Zap size={20} color="#0ea5e9" />
                             <span>Métricas em Tempo Real</span>
                         </div>
                     </div>
@@ -63,10 +63,9 @@ export function LandingPage({ onSelectRole }: Props) {
                         className={`${styles.roleCard} ${styles.managerCard}`}
                         onClick={() => onSelectRole('manager')}
                     >
-                        <div className={styles.cardGlow}></div>
                         <div className={styles.cardHeader}>
                             <div className={styles.iconBox}>
-                                <Briefcase size={24} color="#38bdf8" />
+                                <Briefcase size={24} color="#0ea5e9" className={styles.featureIcon} />
                             </div>
                             <ArrowRight size={20} className={styles.arrowIcon} />
                         </div>
@@ -81,10 +80,9 @@ export function LandingPage({ onSelectRole }: Props) {
                         className={`${styles.roleCard} ${styles.teamCard}`}
                         onClick={() => onSelectRole('team')}
                     >
-                        <div className={styles.cardGlow}></div>
                         <div className={styles.cardHeader}>
                             <div className={styles.iconBoxTeam}>
-                                <Users size={24} color="#4ade80" />
+                                <Users size={24} color="#22c55e" className={styles.featureIcon} />
                             </div>
                             <ArrowRight size={20} className={styles.arrowIcon} />
                         </div>

@@ -1,13 +1,13 @@
-/* Globals & Layout */
+/* Globals & Layout - CLEAN MINIMALIST */
 .container {
     display: flex;
     width: 100vw;
     height: 100vh;
-    background-color: #020617;
-    /* Slate 950 */
+    background-color: #ffffff;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow: hidden;
-    color: #f8fafc;
+    color: #1e293b;
+    /* Dark Slate /*/
 }
 
 /* --- LEFT SIDE: HERO --- */
@@ -18,23 +18,12 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 60px 80px;
-    background: radial-gradient(circle at top left, #0f172a 0%, #020617 100%);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-right: 1px solid #e2e8f0;
     z-index: 1;
 }
 
-.noiseOverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
-    opacity: 0.04;
-    z-index: -1;
-    pointer-events: none;
-}
-
+/* Very subtle grid for texture, without the heavy noise */
 .gridOverlay {
     position: absolute;
     top: 0;
@@ -42,13 +31,13 @@
     right: 0;
     bottom: 0;
     background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
     background-size: 40px 40px;
-    z-index: -2;
+    z-index: -1;
     pointer-events: none;
-    mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
-    -webkit-mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
+    mask-image: linear-gradient(to bottom right, black 0%, transparent 80%);
+    -webkit-mask-image: linear-gradient(to bottom right, black 0%, transparent 80%);
 }
 
 .brandWrapper {
@@ -66,7 +55,7 @@
     font-size: 1.25rem;
     font-weight: 800;
     letter-spacing: -0.05em;
-    color: #f8fafc;
+    color: #0f172a;
 }
 
 .heroContent {
@@ -76,18 +65,19 @@
 }
 
 .headline {
-    font-size: 5.5rem;
+    font-size: 5rem;
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: -0.04em;
     margin: 0 0 24px 0;
-    color: #ffffff;
+    color: #0f172a;
+    /* Near Black */
     will-change: transform, opacity;
     animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .gradientText {
-    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -95,7 +85,8 @@
 
 .heroSub {
     font-size: 1.25rem;
-    color: #94a3b8;
+    color: #475569;
+    /* Medium Slate */
     line-height: 1.6;
     font-weight: 400;
     margin-bottom: 48px;
@@ -105,7 +96,8 @@
 
 .features {
     display: flex;
-    gap: 32px;
+    flex-wrap: wrap;
+    gap: 24px;
     animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
     opacity: 0;
 }
@@ -113,63 +105,69 @@
 .featureItem {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-size: 0.95rem;
-    font-weight: 500;
-    color: #cbd5e1;
+    font-weight: 600;
+    color: #64748b;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 100px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .footerInfo {
     font-size: 0.85rem;
-    color: #475569;
+    color: #94a3b8;
 }
 
-/* --- RIGHT SIDE: LOGIN ACTIONS --- */
+/* --- RIGHT SIDE: LOGIN PANELS --- */
 .loginSection {
     flex: 4;
-    background-color: #020617;
+    background-color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 0 80px;
     position: relative;
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+    /* Soft diffuse shadow connecting the sections */
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.02);
     z-index: 2;
 }
 
 .loginHeader {
-    margin-bottom: 48px;
+    margin-bottom: 40px;
     animation: slideLeftFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
     opacity: 0;
 }
 
 .loginHeader h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #f8fafc;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
     margin: 0 0 8px 0;
     letter-spacing: -0.02em;
 }
 
 .loginHeader p {
-    font-size: 1.05rem;
     color: #64748b;
     margin: 0;
+    font-size: 1rem;
 }
 
 .cardsContainer {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 100%;
 }
 
+/* Card Modern Clean Approach */
 .roleCard {
     position: relative;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0;
-    /* Brutalist/Sharp corners */
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    /* Friendly, modern curves */
     padding: 32px;
     display: flex;
     flex-direction: column;
@@ -181,123 +179,112 @@
     animation: slideLeftFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
     opacity: 0;
     outline: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
 .roleCard:nth-child(2) {
     animation-delay: 0.4s;
 }
 
-.roleCard::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 2px;
-    height: 100%;
-    background: transparent;
-    transition: background 0.4s;
-}
-
-.managerCard::before {
-    background: #0ea5e9;
-    opacity: 0;
-}
-
-.teamCard::before {
-    background: #22c55e;
-    opacity: 0;
-}
-
-.roleCard:hover {
-    background: rgba(15, 23, 42, 1);
-    border-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(-8px);
-    box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-.roleCard:hover::before {
-    opacity: 1;
-}
-
 .cardHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 10;
 }
 
-.iconBox,
-.iconBoxTeam {
-    width: 56px;
-    height: 56px;
-    border-radius: 0;
+/* Light theme icons box */
+.iconBox {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.4s;
 }
 
-.roleCard:hover .iconBox {
-    background: rgba(14, 165, 233, 0.1);
-    border-color: rgba(14, 165, 233, 0.2);
-}
-
-.roleCard:hover .iconBoxTeam {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.2);
+.iconBoxTeam {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s;
 }
 
 .arrowIcon {
-    color: #475569;
+    color: #cbd5e1;
     transform: translateX(0);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 0.5;
 }
 
-.roleCard:hover .arrowIcon {
-    color: #f8fafc;
-    transform: translateX(8px);
-    opacity: 1;
+.cardBody {
+    position: relative;
+    z-index: 10;
 }
 
 .cardBody h3 {
     margin: 0 0 8px 0;
     font-size: 1.25rem;
-    font-weight: 600;
-    color: #f1f5f9;
+    font-weight: 700;
+    color: #0f172a;
+    transition: color 0.3s;
 }
 
 .cardBody p {
     margin: 0;
     font-size: 0.9rem;
-    color: #94a3b8;
+    color: #64748b;
     line-height: 1.5;
 }
 
-.cardGlow {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-    top: -100px;
-    right: -100px;
-    border-radius: 50%;
-    pointer-events: none;
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 0;
+/* Minimalist Hover Effects */
+.roleCard:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
 }
 
-.managerCard:hover .cardGlow {
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
-    opacity: 1;
-    transform: scale(1.5);
+.managerCard:hover {
+    border-color: #bae6fd;
 }
 
-.teamCard:hover .cardGlow {
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
-    opacity: 1;
-    transform: scale(1.5);
+.managerCard:hover .iconBox {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+}
+
+.managerCard:hover .iconBox svg {
+    color: #ffffff !important;
+}
+
+.managerCard:hover .arrowIcon {
+    color: #0ea5e9;
+    transform: translateX(6px);
+}
+
+.teamCard:hover {
+    border-color: #bbf7d0;
+}
+
+.teamCard:hover .iconBoxTeam {
+    background: #22c55e;
+    border-color: #22c55e;
+}
+
+.teamCard:hover .iconBoxTeam svg {
+    color: #ffffff !important;
+}
+
+.teamCard:hover .arrowIcon {
+    color: #22c55e;
+    transform: translateX(6px);
 }
 
 /* Animations */
@@ -337,7 +324,7 @@
         padding: 40px;
         flex: none;
         border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .heroContent {
@@ -352,20 +339,25 @@
     .loginSection {
         padding: 60px 40px;
         flex: 1;
+        box-shadow: none;
     }
 }
 
 @media (max-width: 640px) {
-    .features {
-        flex-direction: column;
-        gap: 16px;
-    }
-
     .headline {
         font-size: 2.5rem;
     }
 
     .loginSection {
         padding: 40px 20px;
+    }
+
+    .features {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .featureItem {
+        width: fit-content;
     }
 }
