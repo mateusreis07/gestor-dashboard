@@ -435,10 +435,10 @@ export function TeamDashboard() {
                                 <button
                                     onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
                                     className={styles.configButton}
-                                    title="Configurar Log"
+                                    title="Configurar Visão Oper."
                                 >
                                     <Settings size={18} />
-                                    <span className="desktop-only">Parametrizar Logs</span>
+                                    <span className="desktop-only">Configurar Visão Oper.</span>
                                 </button>
                             )}
                             <button onClick={logout} className={styles.backButton} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }} title="Desconectar">

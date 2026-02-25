@@ -276,10 +276,10 @@ export function CorporateDashboard() {
                 <button
                   onClick={() => navigate(teamId ? `/app/team/${teamId}/import` : '/app/dashboard')}
                   className={styles.configButton}
-                  title="Configurar Log"
+                  title="Configurar Visão Oper."
                 >
                   <Settings size={18} />
-                  <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Configurar</span>
+                  <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Configurar Visão Oper.</span>
                 </button>
               )}
 
