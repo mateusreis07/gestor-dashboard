@@ -1,13 +1,12 @@
-/* Globals & Layout */
+/* Globals & Layout - CLEAN MINIMALIST (matching Landing Page) */
 .container {
   display: flex;
   width: 100vw;
   height: 100vh;
-  background-color: #020617;
-  /* Slate 950 */
+  background-color: #ffffff;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
-  color: #f8fafc;
+  color: #1e293b;
 }
 
 /* --- LEFT SIDE: HERO --- */
@@ -18,21 +17,14 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 60px 80px;
-  background: radial-gradient(circle at top left, #0f172a 0%, #020617 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-right: 1px solid #e2e8f0;
   z-index: 1;
 }
 
 .noiseOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
-  opacity: 0.04;
-  z-index: -1;
-  pointer-events: none;
+  display: none;
+  /* Not used in clean design */
 }
 
 .gridOverlay {
@@ -42,13 +34,13 @@
   right: 0;
   bottom: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
   background-size: 40px 40px;
-  z-index: -2;
+  z-index: -1;
   pointer-events: none;
-  mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
-  -webkit-mask-image: radial-gradient(circle at top left, black 0%, transparent 80%);
+  mask-image: linear-gradient(to bottom right, black 0%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to bottom right, black 0%, transparent 80%);
 }
 
 .brandWrapper {
@@ -61,19 +53,22 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logo:hover {
+  opacity: 0.7;
 }
 
 .logoText {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.05em;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .heroContent {
   max-width: 600px;
-  margin-top: -10vh;
-  /* Optical centering */
 }
 
 .headline {
@@ -82,29 +77,28 @@
   line-height: 1.05;
   letter-spacing: -0.04em;
   margin: 0 0 24px 0;
-  color: #ffffff;
+  color: #0f172a;
   will-change: transform, opacity;
   animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .gradientTextManager {
-  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradientTextTeam {
-  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-
 .heroSub {
   font-size: 1.25rem;
-  color: #94a3b8;
+  color: #475569;
   line-height: 1.6;
   font-weight: 400;
   margin-bottom: 48px;
@@ -114,19 +108,19 @@
 
 .footerInfo {
   font-size: 0.85rem;
-  color: #475569;
+  color: #94a3b8;
 }
 
 /* --- RIGHT SIDE: LOGIN FORM --- */
 .loginSection {
   flex: 4;
-  background-color: #020617;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0 80px;
   position: relative;
-  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.02);
   z-index: 2;
 }
 
@@ -136,7 +130,7 @@
   left: 40px;
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -148,7 +142,7 @@
 }
 
 .backButton:hover {
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .formContainer {
@@ -162,29 +156,28 @@
 .roleIconWrapper {
   width: 56px;
   height: 56px;
-  border-radius: 0;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 24px;
+  transition: all 0.3s;
 }
 
 .roleIconWrapper.manager {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.2);
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
 }
 
 .roleIconWrapper.team {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.2);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
 }
 
 .formTitle {
   font-size: 2rem;
-  font-weight: 700;
-  color: #f8fafc;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0 0 32px 0;
   letter-spacing: -0.02em;
 }
@@ -198,42 +191,49 @@
   margin-bottom: 8px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .inputField {
   width: 100%;
   padding: 14px 16px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0;
-  /* Brutalist */
-  color: #f8fafc;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #0f172a;
   font-size: 1rem;
   outline: none;
   transition: all 0.2s;
   box-sizing: border-box;
 }
 
+.inputField::placeholder {
+  color: #cbd5e1;
+}
+
 .inputField:focus {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(15, 23, 42, 0.8);
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.03);
 }
 
 .managerFocus:focus {
   border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
 .teamFocus:focus {
   border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
 }
 
 .errorMessage {
   margin-bottom: 24px;
   padding: 12px 16px;
-  background: rgba(220, 38, 38, 0.1);
-  border-left: 3px solid #dc2626;
-  color: #fca5a5;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 3px solid #ef4444;
+  border-radius: 8px;
+  color: #dc2626;
   font-size: 0.875rem;
 }
 
@@ -241,8 +241,8 @@
   width: 100%;
   padding: 16px;
   border: none;
-  border-radius: 0;
-  color: #020617;
+  border-radius: 12px;
+  color: #ffffff;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
@@ -250,25 +250,28 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 8px;
 }
 
 .submitButton.manager {
-  background: #38bdf8;
+  background: #0ea5e9;
 }
 
 .submitButton.manager:hover {
-  background: #0ea5e9;
-  box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+  background: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.25);
 }
 
 .submitButton.team {
-  background: #4ade80;
+  background: #22c55e;
 }
 
 .submitButton.team:hover {
-  background: #22c55e;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.25);
 }
 
 /* Animations */
@@ -308,7 +311,7 @@
     padding: 40px;
     flex: none;
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid #e2e8f0;
   }
 
   .heroContent {
@@ -323,6 +326,7 @@
   .loginSection {
     padding: 80px 40px 60px 40px;
     flex: 1;
+    box-shadow: none;
   }
 
   .backButton {

@@ -57,7 +57,7 @@ export function LoginPage() {
 
                 <div className={styles.brandWrapper}>
                     <div className={styles.logo} onClick={handleBack}>
-                        <BarChart3 size={32} color={role === 'manager' ? '#38bdf8' : '#4ade80'} />
+                        <BarChart3 size={32} color={role === 'manager' ? '#0ea5e9' : '#22c55e'} />
                         <span className={styles.logoText}>GestorOS</span>
                     </div>
                 </div>
@@ -91,7 +91,7 @@ export function LoginPage() {
 
                 <div className={styles.formContainer}>
                     <div className={`${styles.roleIconWrapper} ${role === 'manager' ? styles.manager : styles.team}`}>
-                        {role === 'manager' ? <User size={28} color="#38bdf8" /> : <Users size={28} color="#4ade80" />}
+                        {role === 'manager' ? <User size={28} color="#0ea5e9" /> : <Users size={28} color="#22c55e" />}
                     </div>
 
                     <h2 className={styles.formTitle}>
