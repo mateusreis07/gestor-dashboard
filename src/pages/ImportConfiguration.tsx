@@ -125,120 +125,143 @@ export const ImportConfiguration: React.FC = () => {
   }
 
   return (
-    <div className="layout-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
-      <button
-        onClick={() => navigate(`/app/team/${resolvedTeamId}`)}
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginBottom: '24px' }}
-      >
-        <ArrowLeft size={20} /> Voltar ao Dashboard
-      </button>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '40px 24px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <button
+          onClick={() => navigate(`/app/team/${resolvedTeamId}`)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '32px',
+            background: '#ffffff', border: '1px solid #e2e8f0', width: '42px', height: '42px', padding: 0,
+            borderRadius: '12px', justifyContent: 'center', transition: 'all 0.2s', color: '#64748b',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+          }}
+          title="Voltar ao Dashboard"
+        >
+          <ArrowLeft size={20} />
+        </button>
 
-      <header style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Configuração de Importação</h1>
-        <p style={{ color: '#6b7280' }}>Gerencie os dados do time <strong>{teamName}</strong> por período.</p>
-      </header>
+        <header style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Configuração de Importação</h1>
+          <p style={{ color: '#6b7280' }}>Gerencie os dados do time <strong>{teamName}</strong> por período.</p>
+        </header>
 
-      {/* MONTH SELECTION */}
-      <section style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        <label style={{ display: 'block', fontWeight: 600, color: '#374151', marginBottom: '8px', fontSize: '0.95rem' }}>
-          Selecione o Mês de Referência
-        </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Calendar size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={handleMonthChange}
+        {/* MONTH SELECTION */}
+        <section style={{ background: 'white', padding: '32px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '12px', fontSize: '0.95rem' }}>
+            Mês de Referência
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Calendar size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={handleMonthChange}
+                style={{
+                  width: '100%', padding: '14px 14px 14px 48px',
+                  fontSize: '1rem', borderRadius: '12px', border: '1px solid #cbd5e1',
+                  color: '#0f172a', fontWeight: 500, boxSizing: 'border-box',
+                  background: '#f8fafc', transition: 'border-color 0.2s', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#0ea5e9'}
+                onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+              />
+            </div>
+            <button
+              onClick={handleReset}
+              title={`Limpar dados de ${selectedMonth}`}
               style={{
-                width: '100%', padding: '12px 12px 12px 42px',
-                fontSize: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1',
-                color: '#1e293b', fontWeight: 500, boxSizing: 'border-box'
+                padding: '14px', borderRadius: '12px', border: '1px solid #fecaca',
+                background: '#fef2f2', color: '#ef4444', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s'
               }}
-            />
+              onMouseOver={(e) => e.currentTarget.style.background = '#fee2e2'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#fef2f2'}
+            >
+              <Trash size={20} />
+            </button>
           </div>
-          <button
-            onClick={handleReset}
-            title={`Limpar dados de ${selectedMonth}`}
-            style={{
-              padding: '12px', borderRadius: '8px', border: '1px solid #fca5a5',
-              background: '#fee2e2', color: '#dc2626', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+          <div style={{ marginTop: '12px', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '24px' }}>
+            <span>Dados salvos neste mês:</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.tickets > 0 ? '#16a34a' : '#94a3b8' }}>
+              tickets: <strong>{stats.tickets}</strong>
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.chamados > 0 ? '#16a34a' : '#94a3b8' }}>
+              chamados: <strong>{stats.chamados}</strong>
+            </span>
+          </div>
+        </section>
+
+        {/* UPLOAD SECTIONS */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+
+          {/* CSV Upload */}
+          <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ width: '56px', height: '56px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Upload size={28} color="#0ea5e9" />
+            </div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar Tickets (CSV)</h3>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '28px', lineHeight: 1.5 }}>
+              Carregue o arquivo CSV exportado do sistema de tickets para o mês de <strong>{selectedMonth}</strong>.
+            </p>
+            <label style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: '#0ea5e9', color: 'white', padding: '12px 24px',
+              borderRadius: '12px', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.2s', border: 'none'
             }}
-          >
-            <Trash size={20} />
-          </button>
-        </div>
-        <div style={{ marginTop: '12px', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '24px' }}>
-          <span>Dados salvos neste mês:</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.tickets > 0 ? '#16a34a' : '#94a3b8' }}>
-            tickets: <strong>{stats.tickets}</strong>
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.chamados > 0 ? '#16a34a' : '#94a3b8' }}>
-            chamados: <strong>{stats.chamados}</strong>
-          </span>
-        </div>
-      </section>
-
-      {/* UPLOAD SECTIONS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-
-        {/* CSV Upload */}
-        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Upload size={24} color="#2563eb" />
+              onMouseOver={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#0ea5e9'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              <input type="file" accept=".csv" onChange={(e) => handleFileUpload(e, 'csv')} style={{ display: 'none' }} disabled={loading} />
+              {loading ? 'Processando...' : 'Selecionar Arquivo CSV'}
+            </label>
           </div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1f2937', marginBottom: '8px' }}>Importar Tickets (CSV)</h3>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '24px' }}>
-            Carregue o arquivo CSV exportado do sistema de tickets para o mês de <strong>{selectedMonth}</strong>.
-          </p>
-          <label style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: '#2563eb', color: 'white', padding: '10px 20px',
-            borderRadius: '8px', fontWeight: 600, cursor: 'pointer'
-          }}>
-            <input type="file" accept=".csv" onChange={(e) => handleFileUpload(e, 'csv')} style={{ display: 'none' }} disabled={loading} />
-            {loading ? 'Processando...' : 'Selecionar Arquivo CSV'}
-          </label>
+
+          {/* JIRA Upload */}
+          <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ width: '56px', height: '56px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <FileSpreadsheet size={28} color="#10b981" />
+            </div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar Chamados (Jira)</h3>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '28px', lineHeight: 1.5 }}>
+              Carregue a planilha XLSX exportada do Jira para o mês de <strong>{selectedMonth}</strong>.
+            </p>
+            <label style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: '#10b981', color: 'white', padding: '12px 24px',
+              borderRadius: '12px', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.2s', border: 'none'
+            }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              <input type="file" accept=".xlsx, .xls" onChange={(e) => handleFileUpload(e, 'xlsx')} style={{ display: 'none' }} disabled={loading} />
+              {loading ? 'Processando...' : 'Selecionar Arquivo XLSX'}
+            </label>
+          </div>
         </div>
 
-        {/* JIRA Upload */}
-        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', background: '#f0fdf4', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <FileSpreadsheet size={24} color="#16a34a" />
-          </div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1f2937', marginBottom: '8px' }}>Importar Chamados (Jira)</h3>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '24px' }}>
-            Carregue a planilha XLSX exportada do Jira para o mês de <strong>{selectedMonth}</strong>.
-          </p>
-          <label style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: '#16a34a', color: 'white', padding: '10px 20px',
-            borderRadius: '8px', fontWeight: 600, cursor: 'pointer'
-          }}>
-            <input type="file" accept=".xlsx, .xls" onChange={(e) => handleFileUpload(e, 'xlsx')} style={{ display: 'none' }} disabled={loading} />
-            {loading ? 'Processando...' : 'Selecionar Arquivo XLSX'}
-          </label>
-        </div>
+
+
+
+        {
+          message && (
+            <div style={{
+              marginTop: '32px', padding: '16px 20px', borderRadius: '12px',
+              background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
+              border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+              display: 'flex', alignItems: 'center', gap: '12px',
+              color: message.type === 'success' ? '#166534' : '#991b1b',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}>
+              {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+              <span style={{ fontWeight: 500 }}>{message.text}</span>
+            </div>
+          )
+        }
       </div>
-
-
-
-
-      {
-        message && (
-          <div style={{
-            marginTop: '24px', padding: '16px', borderRadius: '8px',
-            background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
-            display: 'flex', alignItems: 'center', gap: '12px',
-            color: message.type === 'success' ? '#166534' : '#991b1b'
-          }}>
-            {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-            <span style={{ fontWeight: 500 }}>{message.text}</span>
-          </div>
-        )
-      }
     </div >
   );
 };
