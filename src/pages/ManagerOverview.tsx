@@ -73,7 +73,7 @@ export function ManagerOverview() {
             <header className={styles.header}>
                 <div className={styles.headerLeft}>
                     <div className={styles.headerLogo}>
-                        <BarChart3 color="white" size={24} />
+                        <BarChart3 color="#ffffff" size={24} />
                     </div>
                     <div>
                         <h1 className={styles.headerTitle}>GestorOS</h1>
@@ -173,7 +173,10 @@ export function ManagerOverview() {
                                         </div>
                                         <div
                                             className={styles.cardIndicator}
-                                            style={{ color: team.ticketCount > 0 ? '#4ade80' : '#475569' }}
+                                            style={{
+                                                color: team.ticketCount > 0 ? '#22c55e' : '#cbd5e1',
+                                                background: 'currentColor'
+                                            }}
                                         />
                                     </div>
                                 </button>
