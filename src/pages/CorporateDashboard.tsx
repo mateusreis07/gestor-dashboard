@@ -6,6 +6,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
 import { corporateService } from '../services/corporateService';
 import type { CorporateData } from '../utils/corporateData';
+import styles from './TeamDashboard.module.css';
 
 export function CorporateDashboard() {
   const { user, role, logout } = useAuth();
@@ -246,84 +247,71 @@ export function CorporateDashboard() {
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '40px' }}>
       {/* ===== HEADER ===== */}
-      <div style={{ padding: '32px 48px', maxWidth: '1600px', margin: '0 auto' }}>
+      <div className={styles.layoutContainer}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            background: 'white', padding: '20px 24px', borderRadius: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className={styles.headerPanel}>
+            <div className={styles.headerLeft}>
               {role === 'MANAGER' && (
-                <button onClick={() => navigate('/app/overview')} style={{ background: '#ffffff', border: '1px solid #e2e8f0', width: '42px', height: '42px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', color: '#64748b' }}>
+                <button onClick={() => navigate('/app/overview')} className={styles.backButton}>
                   <ArrowLeft size={20} />
                 </button>
               )}
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '12px',
-                background: currentTeam?.avatarUrl ? `url(${currentTeam.avatarUrl}) center/cover` : 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
-                overflow: 'hidden', flexShrink: 0
-              }}>
+              <div className={styles.teamAvatar} style={currentTeam?.avatarUrl ? { background: `url(${currentTeam.avatarUrl}) center/cover` } : { background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)' }}>
                 {!currentTeam?.avatarUrl && <LayoutDashboard size={24} />}
               </div>
-              <div>
+              <div className={styles.teamInfo}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
-                    color: '#0284c7', textTransform: 'uppercase',
-                    background: '#f0f9ff', padding: '3px 10px', borderRadius: '100px',
-                    border: '1px solid #bae6fd'
-                  }}>
-                    {role === 'MANAGER' ? 'Gestor Dashboard' : 'Portal do Time'}
+                  <span className={styles.roleBadge}>
+                    {role === 'MANAGER' ? 'Portal Executivo' : 'Portal Operacional'}
                   </span>
                 </div>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0 0', lineHeight: 1.2 }}>
-                  {role === 'MANAGER' ? (user ? `Olá, ${user.name}` : 'Bem-vindo') : (currentTeam?.name || teamName)}
+                <h1 className={styles.teamName}>
+                  {currentTeam?.name || teamName}
                 </h1>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className={styles.headerActions}>
               {role !== 'MANAGER' && (
                 <button
                   onClick={() => navigate(teamId ? `/app/team/${teamId}/import` : '/app/dashboard')}
-                  style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                  className={styles.configButton}
+                  title="Configurar Log"
                 >
                   <Settings size={18} />
                   <span className="desktop-only" style={{ display: typeof window !== 'undefined' && window.innerWidth > 768 ? 'inline' : 'none' }}>Configurar</span>
                 </button>
               )}
 
-              <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-              <button onClick={() => { logout(); navigate('/welcome'); }} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px', width: '42px', height: '42px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Sair">
-                <LogOut size={18} color="#ef4444" />
+              <button onClick={() => { logout(); navigate('/welcome'); }} className={styles.backButton} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }} title="Sair">
+                <LogOut size={18} />
               </button>
             </div>
           </div>
         </header>
 
-        <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px', marginTop: '16px' }}>
-          <button
-            onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}` : '/app/overview') : '/app/dashboard')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
-            <LayoutDashboard size={20} />
-            Visão Geral
-          </button>
-          <button
-            onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}/indicadores` : '/app/overview') : '/app/indicadores')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
-            <BarChart2 size={20} />
-            Indicadores
-          </button>
-          <button
-            onClick={() => navigate('/app/institucional')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
-            <Building2 size={20} />
-            Institucional
-          </button>
-        </div>
+        <main style={{ marginTop: '0px' }}>
+          <div className={styles.tabsContainer}>
+            <button
+              onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}` : '/app/overview') : '/app/dashboard')}
+              className={styles.tabButton}>
+              <LayoutDashboard size={20} />
+              Visão Operacional
+            </button>
+            <button
+              onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}/indicadores` : '/app/overview') : '/app/indicadores')}
+              className={styles.tabButton}>
+              <BarChart2 size={20} />
+              KPIs e Indicadores
+            </button>
+            <button
+              onClick={() => navigate('/app/institucional')}
+              className={`${styles.tabButton} ${styles.active}`}>
+              <Building2 size={20} />
+              Metas Institucionais
+            </button>
+          </div>
+        </main>
       </div>
 
       <main style={{ maxWidth: '1200px', margin: '0 auto 32px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
