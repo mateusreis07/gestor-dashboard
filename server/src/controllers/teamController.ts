@@ -8,7 +8,7 @@ export const getTeamDashboard = async (req: Request, res: Response) => {
 
     const team = await prisma.user.findUnique({
       where: { id: teamId, role: 'TEAM' },
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, avatarUrl: true }
     });
 
     if (!team) {

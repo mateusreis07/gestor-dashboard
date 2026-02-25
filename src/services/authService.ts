@@ -16,6 +16,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  avatarUrl?: string;
   role: 'MANAGER' | 'TEAM';
 }
 
@@ -39,6 +40,7 @@ export const authService = {
       id: userSupabase.id,
       email: userSupabase.email!,
       name: userSupabase.user_metadata?.name || userSupabase.email?.split('@')[0],
+      avatarUrl: userSupabase.user_metadata?.avatarUrl,
       role: role
     };
 

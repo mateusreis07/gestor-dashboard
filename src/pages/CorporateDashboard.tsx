@@ -32,6 +32,14 @@ export function CorporateDashboard() {
         name: user.name || user.email,
         avatarUrl: (user as any).avatarUrl,
       });
+
+      import('../services/teamService').then(({ teamService }) => {
+        teamService.getDashboard(resolvedTeamId).then(data => {
+          if (data.team?.avatarUrl) {
+            setCurrentTeam((prev: any) => ({ ...prev, avatarUrl: data.team.avatarUrl }));
+          }
+        }).catch(err => console.error(err));
+      });
       return;
     }
 

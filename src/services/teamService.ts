@@ -2,7 +2,7 @@ import api from './api';
 import type { Ticket, Chamado } from '../utils/types';
 
 export interface DashboardData {
-  team: { id: string; name: string; email: string };
+  team: { id: string; name: string; email: string; avatarUrl?: string | null };
   tickets: Ticket[];
   chamados: Chamado[];
   manualStats: { satisfaction: string | null; manuals: string | null; projetos: string | null; treinamentos: string | null } | null;

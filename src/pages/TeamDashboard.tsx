@@ -144,6 +144,11 @@ export function TeamDashboard() {
                 setChamados(data.chamados || []);
                 if (data.history) setHistory(data.history);
 
+                // Atualiza avatarUrl do banco caso o usuário TEAM não o tenha
+                if (data.team?.avatarUrl && data.team.avatarUrl !== currentTeam.avatarUrl) {
+                    setCurrentTeam(prev => prev ? { ...prev, avatarUrl: data.team.avatarUrl } as any : prev);
+                }
+
                 if (data.manualStats) {
                     setManualStats({
                         satisfaction: data.manualStats.satisfaction || '0',
