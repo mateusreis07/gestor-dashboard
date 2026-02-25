@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService, type AuthUser } from '../services/authService';
 
 interface AuthContextType {
@@ -25,6 +25,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Sem loading state necessário — a inicialização é síncrona
     const loading = false;
+
+    // Listener para suportar atualizações em background (como quando o avatar baixa e salva no localstorage)
+    useEffect(() => {
+        const handleUserUpdated = () => {
+            const currentUser = authService.getCurrentUser();
+            if (currentUser && authService.isAuthenticated()) {
+                setUser(currentUser);
+            }
+        };
+
+        window.addEventListener('user-updated', handleUserUpdated);
+        return () => window.removeEventListener('user-updated', handleUserUpdated);
+    }, []);
 
     const login = async (email: string, password: string): Promise<AuthUser | null> => {
         try {

@@ -37,6 +37,18 @@ export function CorporateDashboard() {
         teamService.getDashboard(resolvedTeamId).then(data => {
           if (data.team?.avatarUrl) {
             setCurrentTeam((prev: any) => ({ ...prev, avatarUrl: data.team.avatarUrl }));
+
+            const storedUserRaw = localStorage.getItem('user');
+            if (storedUserRaw) {
+              try {
+                const storedUser = JSON.parse(storedUserRaw);
+                if (storedUser.avatarUrl !== data.team.avatarUrl) {
+                  storedUser.avatarUrl = data.team.avatarUrl;
+                  localStorage.setItem('user', JSON.stringify(storedUser));
+                  window.dispatchEvent(new Event('user-updated'));
+                }
+              } catch (e) { }
+            }
           }
         }).catch(err => console.error(err));
       });

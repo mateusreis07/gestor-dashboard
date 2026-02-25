@@ -144,11 +144,6 @@ export function TeamDashboard() {
                 setChamados(data.chamados || []);
                 if (data.history) setHistory(data.history);
 
-                // Atualiza avatarUrl do banco caso o usuário TEAM não o tenha
-                if (data.team?.avatarUrl && data.team.avatarUrl !== currentTeam.avatarUrl) {
-                    setCurrentTeam(prev => prev ? { ...prev, avatarUrl: data.team.avatarUrl } as any : prev);
-                }
-
                 if (data.manualStats) {
                     setManualStats({
                         satisfaction: data.manualStats.satisfaction || '0',
@@ -250,7 +245,31 @@ export function TeamDashboard() {
                 name: user.name || user.email,
                 email: user.email,
                 password: '',
+                avatarUrl: (user as any).avatarUrl,
             } as any);
+
+            // Busca dados reais do banco para popular coisas fravadas lá (como a avatarUrl atualizada)
+            import('../services/teamService').then(({ teamService }) => {
+                teamService.getDashboard(resolvedTeamId).then(data => {
+                    if (data.team?.avatarUrl) {
+                        setCurrentTeam((prev: any) => prev ? { ...prev, avatarUrl: data.team.avatarUrl } : prev);
+
+                        // Atualiza a cache no user (AuthContext/LocalStorage) para os próximos reloads não terem delay:
+                        const storedUserRaw = localStorage.getItem('user');
+                        if (storedUserRaw) {
+                            try {
+                                const storedUser = JSON.parse(storedUserRaw);
+                                if (storedUser.avatarUrl !== data.team.avatarUrl) {
+                                    storedUser.avatarUrl = data.team.avatarUrl;
+                                    localStorage.setItem('user', JSON.stringify(storedUser));
+                                    // Optionally dispatch event for auth context updates
+                                    window.dispatchEvent(new Event('user-updated'));
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }).catch(err => console.error(err));
+            });
             return;
         }
 

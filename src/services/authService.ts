@@ -47,6 +47,21 @@ export const authService = {
     // Mantém compatibilidade com api.ts salvando no localStorage
     // Nota: Em produção idealmente usaríamos o onAuthStateChange para manter atualizado
     localStorage.setItem('token', token);
+
+    // Tenta interceptar o avatar diretamente do banco (pois o metadata do Supabase pode não estar com o logo atualizado de times antigos)
+    if (role === 'TEAM') {
+      try {
+        const api = (await import('./api')).default;
+        const res = await api.get(`/teams/${user.id}/dashboard`);
+        if (res.data?.team?.avatarUrl) {
+          user.avatarUrl = res.data.team.avatarUrl;
+        }
+      } catch (e) {
+        console.warn('Erro ao pré-carregar avatar no login', e);
+      }
+    }
+
+    // Atualiza novamente o localStorage agora com o logo se existente
     localStorage.setItem('user', JSON.stringify(user));
 
     return { token, user };
