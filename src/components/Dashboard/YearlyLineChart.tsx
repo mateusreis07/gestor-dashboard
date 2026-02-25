@@ -20,13 +20,13 @@ export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, c
         if (active && payload && payload.length) {
             return (
                 <div style={{
-                    background: 'rgba(15, 23, 42, 0.9)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '0',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
                     padding: '12px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
                 }}>
-                    <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: '#f8fafc' }}>
+                    <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: '#0f172a' }}>
                         {label}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -43,15 +43,15 @@ export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, c
 
     return (
         <div style={{
-            background: 'rgba(15, 23, 42, 0.4)',
-            borderRadius: '0',
+            background: '#ffffff',
+            borderRadius: '16px',
             padding: '24px',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             marginBottom: '32px',
             display: 'flex',
             flexDirection: 'column',
-            height: '350px' // Altura fixa para todos os painéis
+            height: '350px'
         }}>
             <h2 style={{
                 textAlign: 'center',

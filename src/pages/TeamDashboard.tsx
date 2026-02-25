@@ -451,8 +451,8 @@ export function TeamDashboard() {
                     {activeTab === 'geral' && (
                         <div className={styles.filterToolbar}>
                             <div className={styles.monthSelector}>
-                                <Calendar size={18} color="#f8fafc" />
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8' }}>Mês Base:</span>
+                                <Calendar size={18} color="#64748b" />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Mês Base:</span>
 
                                 <select
                                     className={styles.monthSelect}
@@ -498,7 +498,7 @@ export function TeamDashboard() {
                                         <span>DE</span>
                                         <input type="date" className={styles.dateInput} value={formatDateForInput(startDate)} onChange={handleStartDateChange} />
                                     </div>
-                                    <div style={{ color: '#475569' }}>—</div>
+                                    <div style={{ color: '#cbd5e1' }}>—</div>
                                     <div className={styles.dateField}>
                                         <span>ATÉ</span>
                                         <input type="date" className={styles.dateInput} value={formatDateForInput(endDate)} onChange={handleEndDateChange} />
@@ -689,25 +689,25 @@ export function TeamDashboard() {
                             {isEditingStats && (
                                 <div style={{
                                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                    background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
+                                    background: 'rgba(0, 0, 0, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 1000, backdropFilter: 'blur(4px)', padding: '20px'
                                 }}>
                                     <div style={{
-                                        background: '#0f172a', padding: '32px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        background: '#ffffff', padding: '32px', borderRadius: '20px', border: '1px solid #e2e8f0',
                                         width: '100%', maxWidth: '600px', maxHeight: '90vh',
-                                        overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                        overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)'
                                     }}>
-                                        <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#f8fafc' }}>Atualizar Métricas</h3>
+                                        <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Atualizar Métricas</h3>
 
                                         <div style={{ marginBottom: '16px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
                                                 Índice de Satisfação (0-5)
                                             </label>
                                             <input
                                                 type="number" step="0.01" max="5" min="0"
                                                 value={manualStats.satisfaction}
                                                 onChange={(e) => setManualStats({ ...manualStats, satisfaction: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '12px', background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
                                             />
                                         </div>
 
@@ -732,7 +732,7 @@ export function TeamDashboard() {
                                                 placeholder="Liste os projetos..."
                                                 value={manualStats.projetos}
                                                 onChange={(e) => setManualStats({ ...manualStats, projetos: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '12px', background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
                                             />
                                         </div>
 
@@ -752,19 +752,19 @@ export function TeamDashboard() {
                                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                                             <button
                                                 onClick={() => setIsEditingStats(false)}
-                                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
+                                                style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, cursor: 'pointer', padding: '8px 16px' }}
                                             >
                                                 Cancelar
                                             </button>
                                             <button
                                                 onClick={handleSaveStats}
                                                 style={{
-                                                    background: '#38bdf8', color: '#020617', border: 'none', borderRadius: '0',
-                                                    padding: '8px 24px', fontWeight: 700, cursor: 'pointer',
-                                                    boxShadow: '0 4px 6px -1px rgba(56, 189, 248, 0.2)'
+                                                    background: '#0ea5e9', color: '#ffffff', border: 'none', borderRadius: '12px',
+                                                    padding: '10px 24px', fontWeight: 700, cursor: 'pointer',
+                                                    transition: 'all 0.2s'
                                                 }}
-                                                onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)'}
-                                                onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(56, 189, 248, 0.2)'}
+                                                onMouseOver={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.background = '#0ea5e9'; e.currentTarget.style.transform = 'translateY(0)'; }}
                                             >
                                                 Salvar
                                             </button>
@@ -817,8 +817,8 @@ export function TeamDashboard() {
                                 !isLoading && tickets.length > 0 && (
                                     <>
                                         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <ClipboardList size={20} color="#38bdf8" />
-                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                            <ClipboardList size={20} color="#0ea5e9" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                                                 Painel de chamados
                                             </h2>
                                         </div>
@@ -844,11 +844,11 @@ export function TeamDashboard() {
                                             marginBottom: '16px',
                                             display: 'flex', alignItems: 'center', gap: '10px'
                                         }}>
-                                            <ClipboardList size={20} color="#38bdf8" />
-                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                            <ClipboardList size={20} color="#0ea5e9" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                                                 Painel de Chamados JIRA
                                             </h2>
-                                            <span style={{ fontSize: '0.8rem', color: '#6b7280', background: '#f0fdf4', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                            <span style={{ fontSize: '0.8rem', color: '#0284c7', background: '#f0f9ff', padding: '2px 10px', borderRadius: '100px', fontWeight: 600, border: '1px solid #bae6fd' }}>
                                                 {chamados.length} registros
                                             </span>
                                         </div>
@@ -873,8 +873,8 @@ export function TeamDashboard() {
                                             marginBottom: '16px',
                                             display: 'flex', alignItems: 'center', gap: '10px'
                                         }}>
-                                            <ClipboardList size={20} color="#38bdf8" />
-                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                            <ClipboardList size={20} color="#0ea5e9" />
+                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                                                 Entregas do Período
                                             </h2>
                                         </div>
@@ -976,25 +976,25 @@ export function TeamDashboard() {
                     ) : (
                         <>
                             {/* INDICADORES VIEW */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: 'rgba(15, 23, 42, 0.6)', padding: '16px 24px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ width: '40px', height: '40px', borderRadius: '0', background: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f0f9ff', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
                                         <BarChart2 size={24} />
                                     </div>
                                     <div>
-                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>Indicadores Anuais</h2>
+                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Indicadores Anuais</h2>
                                         <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Métricas preenchidas mês a mês por relatório</p>
                                     </div>
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '8px 16px', borderRadius: '0', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                         <Calendar size={18} color="#64748b" />
-                                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#94a3b8' }}>Ano:</span>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>Ano:</span>
                                         <select
                                             value={indicatorsYear}
                                             onChange={(e) => setIndicatorsYear(e.target.value)}
-                                            style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#f8fafc', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
+                                            style={{ border: 'none', background: 'transparent', fontWeight: 700, color: '#0f172a', cursor: 'pointer', outline: 'none', fontSize: '1rem' }}
                                         >
                                             {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
                                                 <option key={year} value={year}>{year}</option>
@@ -1005,9 +1005,9 @@ export function TeamDashboard() {
                                     {role === 'TEAM' && (
                                         <button
                                             onClick={() => setIsEditingIndicators(true)}
-                                            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#38bdf8', color: '#020617', padding: '10px 20px', borderRadius: '0', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(56, 189, 248, 0.2)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)'}
-                                            onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(56, 189, 248, 0.2)'}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0ea5e9', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+                                            onMouseOver={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                            onMouseOut={(e) => { e.currentTarget.style.background = '#0ea5e9'; e.currentTarget.style.transform = 'translateY(0)'; }}
                                         >
                                             Preencher Mês
                                         </button>
@@ -1053,8 +1053,8 @@ export function TeamDashboard() {
                             {isEditingIndicators && (
                                 <div style={{
                                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                    background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    zIndex: 1000, backdropFilter: 'blur(8px)', padding: '20px'
+                                    background: 'rgba(0, 0, 0, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 1000, backdropFilter: 'blur(4px)', padding: '20px'
                                 }}>
                                     <div style={{
                                         background: 'white', padding: '32px', borderRadius: '24px',

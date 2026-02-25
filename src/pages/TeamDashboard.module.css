@@ -1,50 +1,39 @@
-/* Globals & Layout */
+/* Team Dashboard - CLEAN MINIMALIST */
 .page {
   min-height: 100vh;
-  background-color: #020617;
-  /* Slate 950 */
+  background-color: #f8fafc;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #f8fafc;
+  color: #1e293b;
   position: relative;
   overflow-x: hidden;
   padding-bottom: 60px;
 }
 
-/* Background Effects */
+/* Subtle background texture */
 .page::before {
   content: '';
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100%;
+  height: 100vh;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
   background-size: 40px 40px;
   z-index: 0;
   pointer-events: none;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
 }
 
 .page::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
-  opacity: 0.04;
-  z-index: 0;
-  pointer-events: none;
-  position: fixed;
+  display: none;
 }
 
 .layoutContainer {
   position: relative;
-  z-index: 10;
+  z-index: 1;
   padding: 32px 48px;
   max-width: 1600px;
   margin: 0 auto;
@@ -58,51 +47,53 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 24px;
-  border-radius: 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 20px 24px;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .backButton {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   width: 42px;
   height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .backButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .teamAvatar {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 800;
   font-size: 1.25rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .teamInfo {
@@ -116,18 +107,19 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: #4ade80;
+  color: #0284c7;
   text-transform: uppercase;
-  background: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  padding: 3px 8px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 3px 10px;
+  border-radius: 100px;
   align-self: flex-start;
 }
 
 .teamName {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -138,30 +130,31 @@
 }
 
 .configButton {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   padding: 10px 20px;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .configButton:hover {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  color: #38bdf8;
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 /* --- TABS --- */
 .tabsContainer {
   display: flex;
   gap: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #e2e8f0;
   margin-bottom: 24px;
   padding: 0 8px;
   animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
@@ -174,25 +167,22 @@
   border-bottom: 3px solid transparent;
   padding: 12px 0px;
   font-weight: 700;
-  font-size: 1rem;
-  color: #64748b;
+  font-size: 0.95rem;
+  color: #94a3b8;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: all 0.2s;
-  opacity: 0.6;
 }
 
 .tabButton:hover {
-  opacity: 1;
-  color: #f8fafc;
+  color: #475569;
 }
 
 .tabButton.active {
-  border-bottom: 3px solid #38bdf8;
-  color: #f8fafc;
-  opacity: 1;
+  border-bottom: 3px solid #0ea5e9;
+  color: #0f172a;
 }
 
 /* --- FILTER TOOLBAR --- */
@@ -200,10 +190,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
   opacity: 0;
 }
@@ -212,15 +203,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.03);
+  background: #f8fafc;
   padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .monthSelect {
   border: none;
   background: transparent;
-  color: #f8fafc;
+  color: #0f172a;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
@@ -228,46 +220,50 @@
 }
 
 .monthSelect option {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 .filterActions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .quickFilters {
   display: flex;
-  background: rgba(0, 0, 0, 0.3);
+  background: #f1f5f9;
   padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
 }
 
 .quickFilterBtn {
   background: transparent;
   border: none;
-  padding: 8px 16px;
-  font-size: 0.85rem;
+  padding: 8px 14px;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
 .quickFilterBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #f8fafc;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .dateRange {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #f8fafc;
+  padding: 6px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .dateField {
@@ -277,23 +273,30 @@
 }
 
 .dateField span {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
+  text-transform: uppercase;
 }
 
 .dateInput {
   background: transparent;
   border: none;
-  color: #f8fafc;
+  color: #0f172a;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   outline: none;
   cursor: pointer;
 }
 
 .dateInput::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /* Animations */
@@ -310,15 +313,25 @@
 }
 
 @media (max-width: 1024px) {
+  .layoutContainer {
+    padding: 20px;
+  }
+
   .filterToolbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
   }
 
   .filterActions {
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .headerPanel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 }
