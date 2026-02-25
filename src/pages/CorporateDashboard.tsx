@@ -250,13 +250,13 @@ export function CorporateDashboard() {
         <header style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            background: 'white', padding: '16px 24px', borderRadius: '16px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            background: 'white', padding: '20px 24px', borderRadius: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {role === 'MANAGER' && (
-                <button onClick={() => navigate('/app/overview')} style={{ background: 'transparent', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
-                  <ArrowLeft size={20} color="#6b7280" />
+                <button onClick={() => navigate('/app/overview')} style={{ background: '#ffffff', border: '1px solid #e2e8f0', width: '42px', height: '42px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', color: '#64748b' }}>
+                  <ArrowLeft size={20} />
                 </button>
               )}
               <div style={{
@@ -272,8 +272,9 @@ export function CorporateDashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
-                    color: '#64748b', textTransform: 'uppercase',
-                    background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px'
+                    color: '#0284c7', textTransform: 'uppercase',
+                    background: '#f0f9ff', padding: '3px 10px', borderRadius: '100px',
+                    border: '1px solid #bae6fd'
                   }}>
                     {role === 'MANAGER' ? 'Gestor Dashboard' : 'Portal do Time'}
                   </span>
@@ -296,7 +297,7 @@ export function CorporateDashboard() {
               )}
 
               <div style={{ width: '1px', background: '#e2e8f0', margin: '0 4px' }} />
-              <button onClick={() => { logout(); navigate('/welcome'); }} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Sair">
+              <button onClick={() => { logout(); navigate('/welcome'); }} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px', width: '42px', height: '42px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Sair">
                 <LogOut size={18} color="#ef4444" />
               </button>
             </div>
@@ -306,19 +307,19 @@ export function CorporateDashboard() {
         <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', padding: '0 8px', marginTop: '16px' }}>
           <button
             onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}` : '/app/overview') : '/app/dashboard')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
             <LayoutDashboard size={20} />
             Visão Geral
           </button>
           <button
             onClick={() => navigate(role === 'MANAGER' ? (teamId ? `/app/team/${teamId}/indicadores` : '/app/overview') : '/app/indicadores')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 0.6 }}>
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid transparent', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
             <BarChart2 size={20} />
             Indicadores
           </button>
           <button
             onClick={() => navigate('/app/institucional')}
-            style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '1rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', opacity: 1 }}>
+            style={{ background: 'none', border: 'none', borderBottom: '3px solid #0ea5e9', padding: '12px 0px', fontWeight: 700, fontSize: '0.95rem', color: '#0f172a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
             <Building2 size={20} />
             Institucional
           </button>
