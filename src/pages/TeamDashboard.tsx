@@ -569,7 +569,7 @@ export function TeamDashboard() {
                             onClick={() => navigate(teamId ? `/app/team/${teamId}/institucional` : '/app/institucional')}
                             className={styles.tabButton}>
                             <Building2 size={20} />
-                            Metas Institucionais
+                            Dados Institucionais
                         </button>
                     </div>
 

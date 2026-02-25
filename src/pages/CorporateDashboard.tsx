@@ -308,7 +308,7 @@ export function CorporateDashboard() {
               onClick={() => navigate('/app/institucional')}
               className={`${styles.tabButton} ${styles.active}`}>
               <Building2 size={20} />
-              Metas Institucionais
+              Dados Institucionais
             </button>
           </div>
         </main>
