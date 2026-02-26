@@ -245,7 +245,7 @@ export function CorporateDashboard() {
               cursor={{ fill: 'rgba(0,0,0,0.04)' }}
               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
             />
-            <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={40}>
+            <Bar isAnimationActive={false} dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={40}>
               <LabelList dataKey="value" position="top" fill="#64748b" fontSize={10} formatter={(v: any) => v > 0 ? v : ''} />
             </Bar>
           </BarChart>
@@ -488,7 +488,7 @@ export function CorporateDashboard() {
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
                       formatter={(value: any) => [Number(value).toLocaleString('pt-BR'), 'Total']}
                     />
-                    <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                    <Bar isAnimationActive={false} dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
                       {yearlyData.map((_entry, index) => (
                         <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
                       ))}

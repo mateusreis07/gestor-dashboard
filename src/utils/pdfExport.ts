@@ -35,6 +35,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
           logging: false,
           backgroundColor: '#f8fafc',
           windowWidth: 1400, // Forces desktop layout to prevent squished charts
+          windowHeight: section.scrollHeight + 100, // Pass specific height to avoid viewport crop
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -84,6 +85,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
         logging: false,
         backgroundColor: '#f8fafc',
         windowWidth: 1400,
+        windowHeight: container.scrollHeight + 100, // Avoid viewport clipping
       });
 
       const imgData = canvas.toDataURL('image/png');
