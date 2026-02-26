@@ -356,6 +356,23 @@ export function CorporateDashboard() {
       <div id="corporate-export-area" style={{ background: '#f8fafc', paddingBottom: '32px' }}>
         <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
+          {/* PDF Header - Visible only during export */}
+          {isExporting && (
+            <div className="pdf-page-section" style={{ padding: '24px 0 0 0', display: 'flex', alignItems: 'center', gap: '16px', background: 'transparent' }}>
+              <div style={currentTeam?.avatarUrl ? { width: '48px', height: '48px', borderRadius: '12px', background: `url(${currentTeam.avatarUrl}) center/cover` } : { width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                {!currentTeam?.avatarUrl && <Building2 size={24} />}
+              </div>
+              <div>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                  Dados Institucionais
+                </h1>
+                <p style={{ fontSize: '1rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                  {currentTeam?.name || teamName}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Action Bar for Institutional View (Team Editing Features) */}
           {role === 'TEAM' ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: '24px' }}>

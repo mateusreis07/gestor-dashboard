@@ -594,27 +594,46 @@ export function TeamDashboard() {
                 </header>
 
                 <main id="team-export-area" style={{ marginTop: '0px' }}> {/* Add margin top */}
+                    {/* PDF Header - Visible only during export */}
+                    {isExporting && (
+                        <div className="pdf-page-section" style={{ padding: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: '16px', background: 'transparent' }}>
+                            <div style={currentTeam.avatarUrl ? { width: '48px', height: '48px', borderRadius: '12px', background: `url(${currentTeam.avatarUrl}) center/cover` } : { width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
+                            </div>
+                            <div>
+                                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                                    {activeTab === 'geral' ? 'Visão Operacional' : 'KPIs e Indicadores'} - {currentTeam.name}
+                                </h1>
+                                <p style={{ fontSize: '1rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                                    Mês de Referência: {currentViewMonth ? currentViewMonth.split('-').reverse().join('/') : ''}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* TABS HEADERS */}
-                    <div className={styles.tabsContainer}>
-                        <button
-                            onClick={() => { setActiveTab('geral'); navigate(teamId ? `/app/team/${teamId}` : '/app/dashboard'); }}
-                            className={`${styles.tabButton} ${activeTab === 'geral' ? styles.active : ''}`}>
-                            <LayoutDashboard size={20} />
-                            Visão Operacional
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab('indicadores'); navigate(teamId ? `/app/team/${teamId}/indicadores` : '/app/indicadores'); }}
-                            className={`${styles.tabButton} ${activeTab === 'indicadores' ? styles.active : ''}`}>
-                            <BarChart2 size={20} />
-                            KPIs e Indicadores
-                        </button>
-                        <button
-                            onClick={() => navigate(teamId ? `/app/team/${teamId}/institucional` : '/app/institucional')}
-                            className={styles.tabButton}>
-                            <Building2 size={20} />
-                            Dados Institucionais
-                        </button>
-                    </div>
+                    {!isExporting && (
+                        <div className={styles.tabsContainer}>
+                            <button
+                                onClick={() => { setActiveTab('geral'); navigate(teamId ? `/app/team/${teamId}` : '/app/dashboard'); }}
+                                className={`${styles.tabButton} ${activeTab === 'geral' ? styles.active : ''}`}>
+                                <LayoutDashboard size={20} />
+                                Visão Operacional
+                            </button>
+                            <button
+                                onClick={() => { setActiveTab('indicadores'); navigate(teamId ? `/app/team/${teamId}/indicadores` : '/app/indicadores'); }}
+                                className={`${styles.tabButton} ${activeTab === 'indicadores' ? styles.active : ''}`}>
+                                <BarChart2 size={20} />
+                                KPIs e Indicadores
+                            </button>
+                            <button
+                                onClick={() => navigate(teamId ? `/app/team/${teamId}/institucional` : '/app/institucional')}
+                                className={styles.tabButton}>
+                                <Building2 size={20} />
+                                Dados Institucionais
+                            </button>
+                        </div>
+                    )}
 
                     {activeTab === 'geral' ? (
                         <>
