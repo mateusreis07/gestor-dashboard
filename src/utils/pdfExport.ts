@@ -2,25 +2,13 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 export const exportDashboardToPDF = async (elementId: string, filename: string): Promise<boolean> => {
-  const element = document.getElementById(elementId);
-  if (!element) {
+  const container = document.getElementById(elementId);
+  if (!container) {
     console.error(`Element with id ${elementId} not found.`);
     return false;
   }
 
   try {
-    // Option 1: Landscape A4, Option 2: scale down to fit single page perfectly
-    // To maintain fidelity of complex charts, we capture at 2x scale
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true, // Necessary if there are external images like the avatarUrl
-      logging: false,
-      backgroundColor: '#f8fafc', // match dashboard background
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-
-    // A4 size in mm: 297 x 210 (Landscape)
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -29,20 +17,71 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10; // 10mm margin on sides
+    const innerWidth = pdfWidth - margin * 2;
+    let currentY = margin;
 
-    // Calculate the dimension to fit the image in the PDF page
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    // Busca blocos demarcados para não serem "cortados" ao meio na quebra de página
+    const sections = Array.from(container.querySelectorAll('.pdf-page-section')) as HTMLElement[];
 
-    const finalWidth = imgWidth * ratio;
-    const finalHeight = imgHeight * ratio;
+    // ===== LÓGICA AVANÇADA (Multipage Sem Quebra) =====
+    if (sections.length > 0) {
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
 
-    // Center on the page
-    const xOffset = (pdfWidth - finalWidth) / 2;
-    const yOffset = (pdfHeight - finalHeight) / 2;
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#f8fafc',
+        });
 
-    pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
+        const imgData = canvas.toDataURL('image/png');
+        const ratio = innerWidth / canvas.width;
+        const finalWidth = innerWidth;
+        const finalHeight = canvas.height * ratio;
+
+        // Se a altura do bloco não couber no espaço restante da página, cria nova página
+        // Exceção: se finalHeight > pdfHeight, ele vai vazar um pouco mas não quebra no topo.
+        if (currentY + finalHeight > pdfHeight - margin && i > 0) {
+          pdf.addPage();
+          currentY = margin;
+        }
+
+        pdf.addImage(imgData, 'PNG', margin, currentY, finalWidth, finalHeight);
+        currentY += finalHeight + 8; // Adiciona um pequeno gap de 8mm entre as seções
+      }
+    }
+    // ===== FALLBACK (Preenche 100% da largura, quebrando livremente a altura) =====
+    else {
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f8fafc',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      // Expande a largura para 100% da folha (respeitando margem) em vez de encolher o dashboard inteiro
+      const ratio = innerWidth / canvas.width;
+      const finalWidth = innerWidth;
+      const finalHeight = canvas.height * ratio;
+
+      let heightLeft = finalHeight;
+      let position = currentY;
+
+      pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+      heightLeft -= (pdfHeight - margin * 2);
+
+      while (heightLeft > 0) {
+        position = heightLeft - finalHeight + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+        heightLeft -= (pdfHeight - margin * 2);
+      }
+    }
+
     pdf.save(`${filename}.pdf`);
     return true;
   } catch (error) {

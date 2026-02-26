@@ -621,7 +621,7 @@ export function TeamDashboard() {
 
                             {/* KPI Cards Row */}
                             {!isLoading && (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                <div className="pdf-page-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
 
                                     {/* Card 1: Total Tickets (Violet) */}
                                     <div style={{
@@ -859,18 +859,20 @@ export function TeamDashboard() {
                             {
                                 !isLoading && tickets.length > 0 && (
                                     <>
-                                        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <ClipboardList size={20} color="#0ea5e9" />
-                                            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                                                Painel de chamados
-                                            </h2>
-                                        </div>
-                                        <div className="dashboard-grid">
-                                            <OriginChart data={originData} />
-                                            <CategoryChart data={categoryData} />
+                                        <div className="pdf-page-section">
+                                            <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <ClipboardList size={20} color="#0ea5e9" />
+                                                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                                                    Painel de chamados
+                                                </h2>
+                                            </div>
+                                            <div className="dashboard-grid">
+                                                <OriginChart data={originData} />
+                                                <CategoryChart data={categoryData} />
+                                            </div>
                                         </div>
 
-                                        <div className="dashboard-grid">
+                                        <div className="pdf-page-section dashboard-grid" style={{ marginTop: '24px' }}>
                                             <RequesterChart data={requesterData} />
                                             <HistoryChart data={historyData} />
                                         </div>
@@ -881,7 +883,7 @@ export function TeamDashboard() {
                             {/* DASHBOARD CHARTS - XLSX Chamados */}
                             {
                                 !isLoading && showChamados && (
-                                    <>
+                                    <div className="pdf-page-section">
                                         <div style={{
                                             marginTop: tickets.length > 0 ? '32px' : '0',
                                             marginBottom: '16px',
@@ -903,14 +905,14 @@ export function TeamDashboard() {
                                             />
                                             <FuncionalidadeChart data={funcData} />
                                         </div>
-                                    </>
+                                    </div>
                                 )
                             }
 
                             {/* NEW PANEL - PROJETOS & TREINAMENTOS */}
                             {
                                 !isLoading && (
-                                    <>
+                                    <div className="pdf-page-section">
                                         <div style={{
                                             marginTop: '32px',
                                             marginBottom: '16px',
@@ -954,8 +956,8 @@ export function TeamDashboard() {
                                                     fontWeight: 500,
                                                     lineHeight: 1.5,
                                                     whiteSpace: 'pre-wrap',
-                                                    maxHeight: '120px',
-                                                    overflowY: 'auto'
+                                                    maxHeight: 'none',
+                                                    overflowY: 'visible'
                                                 }}>
                                                     {manualStats.projetos || 'Nenhum projeto informado.'}
                                                 </div>
@@ -992,14 +994,14 @@ export function TeamDashboard() {
                                                     fontWeight: 500,
                                                     lineHeight: 1.5,
                                                     whiteSpace: 'pre-wrap',
-                                                    maxHeight: '120px',
-                                                    overflowY: 'auto'
+                                                    maxHeight: 'none',
+                                                    overflowY: 'visible'
                                                 }}>
                                                     {manualStats.treinamentos || 'Nenhum treinamento informado.'}
                                                 </div>
                                             </div>
                                         </div>
-                                    </>
+                                    </div>
                                 )
                             }
 

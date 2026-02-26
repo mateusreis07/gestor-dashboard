@@ -404,7 +404,7 @@ export function CorporateDashboard() {
 
           {/* KPIs */}
           {!isEditing && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+            <div className="pdf-page-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
               {yearsKeys.map((key, idx) => {
                 const year = key.replace('calls', '');
                 const prevKey = yearsKeys[idx - 1];
@@ -422,7 +422,7 @@ export function CorporateDashboard() {
           )}
 
           {/* Charts: Monthly */}
-          <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+          <section className="pdf-page-section" style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Chamados por Mês</h2>
               {isEditing && (
@@ -475,7 +475,7 @@ export function CorporateDashboard() {
 
           {/* Charts: Yearly Total */}
           {!isEditing && (
-            <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <section className="pdf-page-section" style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Total de Chamados por Ano</h2>
               <div style={{ height: '350px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -500,7 +500,7 @@ export function CorporateDashboard() {
             </section>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
+          <div className="pdf-page-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
             {/* 2. Projetos Realizados */}
             <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
