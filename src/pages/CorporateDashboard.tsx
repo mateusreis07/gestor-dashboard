@@ -1,7 +1,8 @@
+import { exportDashboardToPDF } from '../utils/pdfExport';
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2, Loader2 } from 'lucide-react';
+import { Building2, Briefcase, Calendar, Edit, Save, X, Trash2, Plus, ArrowLeft, GraduationCap, LayoutDashboard, Settings, LogOut, BarChart2, Loader2, FileDown } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList, Cell } from 'recharts';
 import { loadCorporateData, saveCorporateData } from '../utils/corporateData';
 import { corporateService } from '../services/corporateService';
@@ -16,6 +17,7 @@ export function CorporateDashboard() {
   const [data, setData] = useState<CorporateData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<CorporateData | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const teamId = paramsTeamId || localStorage.getItem('gestor_current_team_id');
   const teamName = localStorage.getItem('gestor_current_team_name') || 'Equipe';
@@ -303,6 +305,23 @@ export function CorporateDashboard() {
                 </button>
               )}
 
+              <button
+                onClick={async () => {
+                  setIsExporting(true);
+                  // Pequeno delay para garantir que o React renderizou o botão de loading antes de travar a thread
+                  setTimeout(async () => {
+                    await exportDashboardToPDF('corporate-export-area', `Dashboard Institucional - ${currentTeam?.name || teamName}`);
+                    setIsExporting(false);
+                  }, 100);
+                }}
+                className={styles.configButton}
+                style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#0f172a' }}
+                title="Exportar Dashboard para PDF"
+              >
+                {isExporting ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={18} />}
+                <span className="desktop-only">Exportar PDF</span>
+              </button>
+
               <button onClick={() => { logout(); navigate('/welcome'); }} className={styles.backButton} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }} title="Sair">
                 <LogOut size={18} />
               </button>
@@ -334,250 +353,251 @@ export function CorporateDashboard() {
         </main>
       </div>
 
-      <main style={{ maxWidth: '1200px', margin: '0 auto 32px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div id="corporate-export-area" style={{ background: '#f8fafc', paddingBottom: '32px' }}>
+        <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-        {/* Action Bar for Institutional View (Team Editing Features) */}
-        {role === 'TEAM' ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
-                <Building2 size={24} />
+          {/* Action Bar for Institutional View (Team Editing Features) */}
+          {role === 'TEAM' ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                  <Building2 size={24} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dados Institucionais</h2>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Gerenciamento de informações oficiais do setor</p>
+                </div>
               </div>
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dados Institucionais</h2>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Gerenciamento de informações oficiais do setor</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    style={{ background: '#2563eb', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, transition: 'all 0.2s' }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#1d4ed8'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <Edit size={16} /> Editar Dados
+                  </button>
+                )}
+                {isEditing && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditData(JSON.parse(JSON.stringify(data)));
+                      }}
+                      style={{ background: '#ef4444', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+                    >
+                      <X size={16} /> Cancelar
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      style={{ background: '#10b981', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+                    >
+                      <Save size={16} /> Salvar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  style={{ background: '#2563eb', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, transition: 'all 0.2s' }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#1d4ed8'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  <Edit size={16} /> Editar Dados
-                </button>
-              )}
-              {isEditing && (
-                <>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditData(JSON.parse(JSON.stringify(data)));
-                    }}
-                    style={{ background: '#ef4444', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
-                  >
-                    <X size={16} /> Cancelar
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    style={{ background: '#10b981', border: 'none', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
-                  >
-                    <Save size={16} /> Salvar
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {/* KPIs */}
-        {!isEditing && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-            {yearsKeys.map((key, idx) => {
-              const year = key.replace('calls', '');
-              const prevKey = yearsKeys[idx - 1];
-              const prevYear = prevKey ? prevKey.replace('calls', '') : null;
-              return (
-                <KPICard
-                  key={year}
-                  year={year}
-                  total={totals[year]}
-                  previousTotal={prevYear ? totals[prevYear] : null}
-                />
-              );
-            })}
-          </div>
-        )}
-
-        {/* Charts: Monthly */}
-        <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Chamados por Mês</h2>
-            {isEditing && (
-              <button
-                onClick={handleCreateYear}
-                style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <Plus size={16} /> Adicionar Ano
-              </button>
-            )}
-          </div>
-
-          {!isEditing ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', rowGap: '48px' }}>
+          {/* KPIs */}
+          {!isEditing && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
               {yearsKeys.map((key, idx) => {
                 const year = key.replace('calls', '');
+                const prevKey = yearsKeys[idx - 1];
+                const prevYear = prevKey ? prevKey.replace('calls', '') : null;
                 return (
-                  <MonthlyBarChart
+                  <KPICard
                     key={year}
-                    title={year}
-                    color={YEAR_COLORS[idx % YEAR_COLORS.length]}
-                    chartData={data ? getYearData(data[key]) : []}
+                    year={year}
+                    total={totals[year]}
+                    previousTotal={prevYear ? totals[prevYear] : null}
                   />
                 );
               })}
             </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', overflowX: 'auto' }}>
-              {(editData ? Object.keys(editData).filter(k => k.startsWith('calls')).sort() : []).map((yearKey) => (
-                <div key={yearKey} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', minWidth: '200px' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#334155', marginBottom: '16px', textAlign: 'center' }}>
-                    Ano {yearKey.replace('calls', '')}
-                  </h3>
-                  {enMonths.map((m, idx) => (
-                    <div key={m} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, width: '40px' }}>{ptMonths[idx]}</span>
+          )}
+
+          {/* Charts: Monthly */}
+          <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Chamados por Mês</h2>
+              {isEditing && (
+                <button
+                  onClick={handleCreateYear}
+                  style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Adicionar Ano
+                </button>
+              )}
+            </div>
+
+            {!isEditing ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', rowGap: '48px' }}>
+                {yearsKeys.map((key, idx) => {
+                  const year = key.replace('calls', '');
+                  return (
+                    <MonthlyBarChart
+                      key={year}
+                      title={year}
+                      color={YEAR_COLORS[idx % YEAR_COLORS.length]}
+                      chartData={data ? getYearData(data[key]) : []}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', overflowX: 'auto' }}>
+                {(editData ? Object.keys(editData).filter(k => k.startsWith('calls')).sort() : []).map((yearKey) => (
+                  <div key={yearKey} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', minWidth: '200px' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#334155', marginBottom: '16px', textAlign: 'center' }}>
+                      Ano {yearKey.replace('calls', '')}
+                    </h3>
+                    {enMonths.map((m, idx) => (
+                      <div key={m} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, width: '40px' }}>{ptMonths[idx]}</span>
+                        <input
+                          type="number"
+                          value={(editData?.[yearKey as keyof CorporateData] as any)[m] || 0}
+                          onChange={(e) => handleEditMonth(yearKey as any, m, e.target.value)}
+                          style={{ width: '80px', padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', textAlign: 'right' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Charts: Yearly Total */}
+          {!isEditing && (
+            <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Total de Chamados por Ano</h2>
+              <div style={{ height: '350px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={yearlyData} margin={{ top: 30, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 500 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                      formatter={(value: any) => [Number(value).toLocaleString('pt-BR'), 'Total']}
+                    />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                      {yearlyData.map((_entry, index) => (
+                        <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
+                      ))}
+                      <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: any) => Number(v).toLocaleString('pt-BR')} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
+            {/* 2. Projetos Realizados */}
+            <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Briefcase color="#0ea5e9" size={24} />
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Projetos Realizados (24-26)</h2>
+                </div>
+                {isEditing && (
+                  <button onClick={handleAddProject} style={{ background: '#eff6ff', color: '#2563eb', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <Plus size={16} /> Adicionar
+                  </button>
+                )}
+              </div>
+
+              {!isEditing ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {data.projects.map((proj, idx) => (
+                    <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '10px' }}>
+                      <div style={{ width: '8px', height: '8px', background: '#0ea5e9', borderRadius: '50%', marginTop: '6px', flexShrink: 0 }}></div>
+                      <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>{proj}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {editData?.projects.map((proj, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
-                        type="number"
-                        value={(editData?.[yearKey as keyof CorporateData] as any)[m] || 0}
-                        onChange={(e) => handleEditMonth(yearKey as any, m, e.target.value)}
-                        style={{ width: '80px', padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', textAlign: 'right' }}
+                        value={proj}
+                        onChange={(e) => handleUpdateProject(idx, e.target.value)}
+                        style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                       />
+                      <button onClick={() => handleRemoveProject(idx)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}>
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Charts: Yearly Total */}
-        {!isEditing && (
-          <section style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Total de Chamados por Ano</h2>
-            <div style={{ height: '350px', width: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearlyData} margin={{ top: 30, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 500 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                    formatter={(value: any) => [Number(value).toLocaleString('pt-BR'), 'Total']}
-                  />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
-                    {yearlyData.map((_entry, index) => (
-                      <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
-                    ))}
-                    <LabelList dataKey="value" position="top" fill="#64748b" fontSize={12} formatter={(v: any) => Number(v).toLocaleString('pt-BR')} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-        )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
-          {/* 2. Projetos Realizados */}
-          <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Briefcase color="#0ea5e9" size={24} />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Projetos Realizados (24-26)</h2>
-              </div>
-              {isEditing && (
-                <button onClick={handleAddProject} style={{ background: '#eff6ff', color: '#2563eb', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <Plus size={16} /> Adicionar
-                </button>
               )}
-            </div>
+            </section>
 
-            {!isEditing ? (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {data.projects.map((proj, idx) => (
-                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '10px' }}>
-                    <div style={{ width: '8px', height: '8px', background: '#0ea5e9', borderRadius: '50%', marginTop: '6px', flexShrink: 0 }}></div>
-                    <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>{proj}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {editData?.projects.map((proj, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                      value={proj}
-                      onChange={(e) => handleUpdateProject(idx, e.target.value)}
-                      style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                    />
-                    <button onClick={() => handleRemoveProject(idx)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+            {/* 3. Treinamentos (Agenda) */}
+            <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <GraduationCap color="#0f766e" size={24} />
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Treinamentos & Workshops 2025</h2>
+                </div>
+                {isEditing && (
+                  <button onClick={handleAddTraining} style={{ background: '#ecfdf5', color: '#10b981', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <Plus size={16} /> Adicionar
+                  </button>
+                )}
               </div>
-            )}
-          </section>
 
-          {/* 3. Treinamentos (Agenda) */}
-          <section style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <GraduationCap color="#0f766e" size={24} />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Treinamentos & Workshops 2025</h2>
-              </div>
-              {isEditing && (
-                <button onClick={handleAddTraining} style={{ background: '#ecfdf5', color: '#10b981', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <Plus size={16} /> Adicionar
-                </button>
-              )}
-            </div>
-
-            {!isEditing ? (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {data.trainings.map((train, idx) => (
-                  <li key={idx} style={{
-                    display: 'flex', alignItems: 'center', gap: '16px',
-                    background: '#f8fafc', padding: '16px', borderRadius: '12px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6', flexShrink: 0, width: '100px' }}>
-                      <Calendar size={18} />
-                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{train.date}</span>
+              {!isEditing ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {data.trainings.map((train, idx) => (
+                    <li key={idx} style={{
+                      display: 'flex', alignItems: 'center', gap: '16px',
+                      background: '#f8fafc', padding: '16px', borderRadius: '12px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6', flexShrink: 0, width: '100px' }}>
+                        <Calendar size={18} />
+                        <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{train.date}</span>
+                      </div>
+                      <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500 }}>{train.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {editData?.trainings.map((train, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        value={train.date}
+                        placeholder="DD/MM"
+                        onChange={(e) => handleUpdateTraining(idx, 'date', e.target.value)}
+                        style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      />
+                      <input
+                        value={train.title}
+                        placeholder="Título do Treinamento"
+                        onChange={(e) => handleUpdateTraining(idx, 'title', e.target.value)}
+                        style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      />
+                      <button onClick={() => handleRemoveTraining(idx)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}>
+                        <Trash2 size={16} />
+                      </button>
                     </div>
-                    <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500 }}>{train.title}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {editData?.trainings.map((train, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                      value={train.date}
-                      placeholder="DD/MM"
-                      onChange={(e) => handleUpdateTraining(idx, 'date', e.target.value)}
-                      style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                    />
-                    <input
-                      value={train.title}
-                      placeholder="Título do Treinamento"
-                      onChange={(e) => handleUpdateTraining(idx, 'title', e.target.value)}
-                      style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                    />
-                    <button onClick={() => handleRemoveTraining(idx)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-
-      </main>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

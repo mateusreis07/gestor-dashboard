@@ -20,7 +20,8 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2 } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown } from 'lucide-react';
+import { exportDashboardToPDF } from '../utils/pdfExport';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 import styles from './TeamDashboard.module.css';
 
@@ -56,6 +57,7 @@ export function TeamDashboard() {
     // Month Based View State
     // Month Based View State
     const [currentViewMonth, setCurrentViewMonth] = useState<string>('');
+    const [isExporting, setIsExporting] = useState(false);
 
     // Tabs & Indicators State
     const [yearlyIndicators, setYearlyIndicators] = useState<any[]>([]);
@@ -465,6 +467,23 @@ export function TeamDashboard() {
                                     <span className="desktop-only">Configurar Visão Oper.</span>
                                 </button>
                             )}
+
+                            <button
+                                onClick={async () => {
+                                    setIsExporting(true);
+                                    setTimeout(async () => {
+                                        await exportDashboardToPDF('team-export-area', `Dashboard Operacional - ${currentTeam?.name || 'Equipe'}`);
+                                        setIsExporting(false);
+                                    }, 100);
+                                }}
+                                className={styles.configButton}
+                                style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#0f172a' }}
+                                title="Exportar Dashboard para PDF"
+                            >
+                                {isExporting ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={18} />}
+                                <span className="desktop-only">Exportar PDF</span>
+                            </button>
+
                             <button onClick={logout} className={styles.backButton} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }} title="Desconectar">
                                 <LogOut size={18} />
                             </button>
@@ -574,7 +593,7 @@ export function TeamDashboard() {
                 `}</style>
                 </header>
 
-                <main style={{ marginTop: '0px' }}> {/* Add margin top */}
+                <main id="team-export-area" style={{ marginTop: '0px' }}> {/* Add margin top */}
                     {/* TABS HEADERS */}
                     <div className={styles.tabsContainer}>
                         <button
