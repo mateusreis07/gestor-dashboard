@@ -34,6 +34,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
           useCORS: true,
           logging: false,
           backgroundColor: '#f8fafc',
+          windowWidth: 1400, // Forces desktop layout to prevent squished charts
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -41,15 +42,38 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
         const finalWidth = innerWidth;
         const finalHeight = canvas.height * ratio;
 
-        // Se a altura do bloco não couber no espaço restante da página, cria nova página
-        // Exceção: se finalHeight > pdfHeight, ele vai vazar um pouco mas não quebra no topo.
-        if (currentY + finalHeight > pdfHeight - margin && i > 0) {
+        const pageUsableHeight = pdfHeight - margin * 2;
+
+        // Se o bloco couber na página limpa, mas não no espaço restante atual, puxa pra nova página.
+        if (currentY + finalHeight > pdfHeight - margin && i > 0 && finalHeight <= pageUsableHeight) {
           pdf.addPage();
           currentY = margin;
         }
 
-        pdf.addImage(imgData, 'PNG', margin, currentY, finalWidth, finalHeight);
-        currentY += finalHeight + 8; // Adiciona um pequeno gap de 8mm entre as seções
+        if (finalHeight > pageUsableHeight) {
+          // Se o bloco é MAIOR que uma página inteira, quebra ele em várias páginas
+          if (currentY > margin) {
+            pdf.addPage();
+            currentY = margin;
+          }
+
+          let heightLeft = finalHeight;
+          let position = currentY;
+
+          pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+          heightLeft -= pageUsableHeight;
+
+          while (heightLeft > 0) {
+            position = position - pageUsableHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+            heightLeft -= pageUsableHeight;
+          }
+          currentY = margin; // Próximo bloco inicia já numa página vazia (ou usamos o saldo, mas pra simplificar deixamos limpo)
+        } else {
+          pdf.addImage(imgData, 'PNG', margin, currentY, finalWidth, finalHeight);
+          currentY += finalHeight + 8; // Adiciona um pequeno gap de 8mm entre as seções
+        }
       }
     }
     // ===== FALLBACK (Preenche 100% da largura, quebrando livremente a altura) =====
@@ -59,6 +83,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
         useCORS: true,
         logging: false,
         backgroundColor: '#f8fafc',
+        windowWidth: 1400,
       });
 
       const imgData = canvas.toDataURL('image/png');
