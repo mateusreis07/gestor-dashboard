@@ -126,17 +126,20 @@ export function OriginChart({ data }: Props) {
                                     );
                                 })}
                             </Pie>
+                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: 'none' }}>
+                                <tspan x="50%" dy="-0.2em" fontSize={35} fontWeight={800} fill="#1f2937">
+                                    {activeName ? activeValue : total}
+                                </tspan>
+                                <tspan x="50%" dy="1.5em" fill="#6b7280" fontSize={14} fontWeight={500}>
+                                    Total
+                                </tspan>
+                            </text>
                             <Tooltip
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                 cursor={false}
                             />
                         </PieChart>
                     </ResponsiveContainer>
-
-                    <div className={styles.innerTotal}>
-                        <span className={styles.innerValue}>{activeName ? activeValue : total}</span>
-                        <span className={styles.innerLabel}>Total</span>
-                    </div>
                 </div>
 
                 <div className={styles.legendList}>
