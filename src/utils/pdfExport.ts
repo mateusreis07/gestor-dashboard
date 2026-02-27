@@ -65,11 +65,22 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
           heightLeft -= pageUsableHeight;
           offsetY -= pageUsableHeight;
 
+          // Mask the top/bottom margins of the first page to cover overlaps
+          pdf.setFillColor(248, 250, 252);
+          pdf.rect(0, 0, pdfWidth, margin, 'F');
+          pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
+
           while (heightLeft > 0) {
             pdf.addPage();
             // In jsPDF, drawing the image at negative Y coordinates pushes the upper part out of the visible screen,
             // effectively acting like a crop window for the next slice
             pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
+
+            // Mask the top and bottom margins to hide overlapping image parts!
+            pdf.setFillColor(248, 250, 252); // matches #f8fafc background
+            pdf.rect(0, 0, pdfWidth, margin, 'F');
+            pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
+
             heightLeft -= pageUsableHeight;
             offsetY -= pageUsableHeight;
           }
@@ -106,9 +117,20 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
       heightLeft -= pageUsableHeight;
       offsetY -= pageUsableHeight;
 
+      // Mask the top and bottom margins
+      pdf.setFillColor(248, 250, 252);
+      pdf.rect(0, 0, pdfWidth, margin, 'F');
+      pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
+
       while (heightLeft > 0) {
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
+
+        // Mask the top and bottom margins on new pages too
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(0, 0, pdfWidth, margin, 'F');
+        pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
+
         heightLeft -= pageUsableHeight;
         offsetY -= pageUsableHeight;
       }

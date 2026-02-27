@@ -236,7 +236,7 @@ export function CorporateDashboard() {
     <div style={{ padding: '8px 0', flex: 1, minWidth: '45%' }}>
       <h4 style={{ fontSize: '1rem', color: '#64748b', marginBottom: '24px', fontWeight: 500 }}>{title}</h4>
       <div style={{ height: '240px', width: '100%' }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width={isExporting ? 524 : "100%"} height={isExporting ? 240 : "100%"}>
           <BarChart data={chartData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dy={10} />
@@ -495,7 +495,7 @@ export function CorporateDashboard() {
             <section className="pdf-page-section" style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 32px 0' }}>Total de Chamados por Ano</h2>
               <div style={{ height: '350px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width={isExporting ? 1088 : "100%"} height={isExporting ? 350 : "100%"}>
                   <BarChart data={yearlyData} margin={{ top: 30, right: 0, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 500 }} dy={10} />
