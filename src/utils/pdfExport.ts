@@ -66,7 +66,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
           offsetY -= pageUsableHeight;
 
           // Mask the top/bottom margins of the first page to cover overlaps
-          pdf.setFillColor(248, 250, 252);
+          pdf.setFillColor(255, 255, 255);
           pdf.rect(0, 0, pdfWidth, margin, 'F');
           pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
 
@@ -77,14 +77,17 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
             pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
 
             // Mask the top and bottom margins to hide overlapping image parts!
-            pdf.setFillColor(248, 250, 252); // matches #f8fafc background
+            pdf.setFillColor(255, 255, 255);
             pdf.rect(0, 0, pdfWidth, margin, 'F');
             pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
 
             heightLeft -= pageUsableHeight;
             offsetY -= pageUsableHeight;
           }
-          currentY = margin; // Próximo bloco inicia já numa página vazia (ou usamos o saldo, mas pra simplificar deixamos limpo)
+
+          let remainder = finalHeight % pageUsableHeight;
+          if (remainder === 0) remainder = pageUsableHeight;
+          currentY = margin + remainder + 8; // Updates currentY correctly to the end of the last slice
         } else {
           pdf.addImage(imgData, 'PNG', margin, currentY, finalWidth, finalHeight);
           currentY += finalHeight + 8; // Adiciona um pequeno gap de 8mm entre as seções
@@ -118,7 +121,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
       offsetY -= pageUsableHeight;
 
       // Mask the top and bottom margins
-      pdf.setFillColor(248, 250, 252);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(0, 0, pdfWidth, margin, 'F');
       pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
 
@@ -127,7 +130,7 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
         pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
 
         // Mask the top and bottom margins on new pages too
-        pdf.setFillColor(248, 250, 252);
+        pdf.setFillColor(255, 255, 255);
         pdf.rect(0, 0, pdfWidth, margin, 'F');
         pdf.rect(0, pdfHeight - margin, pdfWidth, margin, 'F');
 
