@@ -1,91 +1,108 @@
 .card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
-    padding: 20px;
+    padding: 24px;
     box-shadow: var(--shadow-card);
     width: 100%;
     margin: 0 auto;
     border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 4px;
     color: var(--text-main);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
 }
 
 .subtitle {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .chartContainer {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.chartWrapper {
+    position: relative;
+    width: 50%;
+    min-width: 260px;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
-.legend {
+.legendList {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 12px;
+    width: 100%;
 }
 
 .legendItem {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.875rem;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: all 0.2s ease;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+}
+
+.legendItemLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .legendColor {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.legendItem:hover .legendColor {
+    transform: scale(1.2);
 }
 
 .legendText {
-    flex: 1;
+    font-size: 0.95rem;
     color: var(--text-main);
     font-weight: 500;
 }
 
 .legendValue {
-    font-weight: 700;
-    color: var(--text-main);
-    font-size: 0.9rem;
-}
-
-.totalContainer {
-    margin-top: 16px;
-    text-align: center;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
-}
-
-.totalValue {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-main);
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-}
-
-.totalLabel {
-    display: block;
-    font-size: 0.875rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
-    font-weight: 500;
-    margin-top: 4px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .chartContainer {
+        flex-direction: column;
+    }
+
+    .chartWrapper {
+        width: 100%;
+    }
+
+    .legendList {
+        width: 100%;
+    }
 }

@@ -17,57 +17,70 @@ export function StatusChart({ data, total, onSliceClick }: Props) {
             <p className={styles.subtitle}>Distribuição por status atual. (Clique para detalhar)</p>
 
             <div className={styles.chartContainer}>
-                <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                        <Pie
-                            data={data}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={55}
-                            outerRadius={90}
-                            dataKey="value"
-                            paddingAngle={3}
-                            stroke="none"
-                            cursor="pointer"
-                            onClick={(data) => onSliceClick && onSliceClick(data.name)}
+                <div className={styles.chartWrapper}>
+                    <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={80}
+                                outerRadius={120}
+                                dataKey="value"
+                                paddingAngle={2}
+                                stroke="none"
+                                cursor="pointer"
+                                labelLine={false}
+                                label={false}
+                                onClick={(data) => onSliceClick && onSliceClick(data.name)}
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={entry.color}
+                                        style={{ outline: 'none', transition: 'all 0.3s ease' }}
+                                    />
+                                ))}
+                            </Pie>
+                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: 'none' }}>
+                                <tspan x="50%" dy="-0.2em" fontSize={35} fontWeight={800} fill="#1f2937">
+                                    {total}
+                                </tspan>
+                                <tspan x="50%" dy="1.5em" fill="#6b7280" fontSize={14} fontWeight={500}>
+                                    Total
+                                </tspan>
+                            </text>
+                            <Tooltip
+                                formatter={(value: number | undefined) => [`${value ?? 0} chamados`, '']}
+                                contentStyle={{
+                                    borderRadius: '8px',
+                                    border: 'none', // Removed explicit solid border to match origin chart shadow style
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                }}
+                                cursor={false}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className={styles.legendList}>
+                    {data.map((item, i) => (
+                        <div
+                            key={i}
+                            className={styles.legendItem}
+                            onClick={() => onSliceClick && onSliceClick(item.name)}
                         >
-                            {data.map((entry, i) => (
-                                <Cell key={i} fill={entry.color} style={{ outline: 'none' }} />
-                            ))}
-                        </Pie>
-                        <Tooltip
-                            formatter={(value: number | undefined) => [`${value ?? 0} chamados`, '']}
-                            contentStyle={{
-                                borderRadius: '8px',
-                                border: '1px solid #e5e7eb',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            }}
-                        />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-
-            <div className={styles.legend}>
-                {data.map((item, i) => (
-                    <div
-                        key={i}
-                        className={styles.legendItem}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => onSliceClick && onSliceClick(item.name)}
-                    >
-                        <span
-                            className={styles.legendColor}
-                            style={{ background: item.color }}
-                        />
-                        <span className={styles.legendText}>{item.name}</span>
-                        <span className={styles.legendValue}>{item.value}</span>
-                    </div>
-                ))}
-            </div>
-
-            <div className={styles.totalContainer}>
-                <span className={styles.totalValue}>{total}</span>
-                <span className={styles.totalLabel}>Total de chamados</span>
+                            <div className={styles.legendItemLeft}>
+                                <span
+                                    className={styles.legendColor}
+                                    style={{ background: item.color }}
+                                />
+                                <span className={styles.legendText}>{item.name}</span>
+                            </div>
+                            <span className={styles.legendValue}>{item.value}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
