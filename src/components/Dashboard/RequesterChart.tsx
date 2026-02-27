@@ -54,7 +54,7 @@ export function RequesterChart({ data, title = "Top Requerentes" }: Props) {
                     <BarChart
                         layout="vertical"
                         data={chartData}
-                        margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                        margin={{ top: 5, right: 50, left: 10, bottom: 5 }}
                         barSize={24}
                     >
                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
