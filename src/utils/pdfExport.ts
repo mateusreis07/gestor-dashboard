@@ -59,16 +59,19 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
           }
 
           let heightLeft = finalHeight;
-          let position = currentY;
+          let offsetY = 0; // Tracks vertical slicing offset
 
-          pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+          pdf.addImage(imgData, 'PNG', margin, currentY, finalWidth, finalHeight);
           heightLeft -= pageUsableHeight;
+          offsetY -= pageUsableHeight;
 
           while (heightLeft > 0) {
-            position = position - pageUsableHeight;
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
+            // In jsPDF, drawing the image at negative Y coordinates pushes the upper part out of the visible screen,
+            // effectively acting like a crop window for the next slice
+            pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
             heightLeft -= pageUsableHeight;
+            offsetY -= pageUsableHeight;
           }
           currentY = margin; // Próximo bloco inicia já numa página vazia (ou usamos o saldo, mas pra simplificar deixamos limpo)
         } else {
@@ -96,16 +99,18 @@ export const exportDashboardToPDF = async (elementId: string, filename: string):
       const finalHeight = canvas.height * ratio;
 
       let heightLeft = finalHeight;
-      let position = currentY;
+      let offsetY = 0;
+      const pageUsableHeight = pdfHeight - margin * 2;
 
-      pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
-      heightLeft -= (pdfHeight - margin * 2);
+      pdf.addImage(imgData, 'PNG', margin, margin, finalWidth, finalHeight);
+      heightLeft -= pageUsableHeight;
+      offsetY -= pageUsableHeight;
 
       while (heightLeft > 0) {
-        position = heightLeft - finalHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, finalWidth, finalHeight);
-        heightLeft -= (pdfHeight - margin * 2);
+        pdf.addImage(imgData, 'PNG', margin, offsetY + margin, finalWidth, finalHeight);
+        heightLeft -= pageUsableHeight;
+        offsetY -= pageUsableHeight;
       }
     }
 
