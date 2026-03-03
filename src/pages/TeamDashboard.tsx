@@ -23,6 +23,7 @@ import type { Ticket, Team, Chamado } from '../utils/types';
 import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown } from 'lucide-react';
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
+import InsightsPanel from '../components/Dashboard/InsightsPanel';
 import styles from './TeamDashboard.module.css';
 
 export function TeamDashboard() {
@@ -745,6 +746,11 @@ export function TeamDashboard() {
                                         </div>
                                     </div>
                                 </div>
+                            )}
+
+                            {/* AI INSIGHTS PANEL */}
+                            {!isExporting && !isLoading && teamId && currentViewMonth && (
+                                <InsightsPanel teamId={teamId} month={currentViewMonth} />
                             )}
 
                             {/* Manual Stats Edit Modal */}

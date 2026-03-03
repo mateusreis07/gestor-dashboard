@@ -66,6 +66,11 @@ export const teamService = {
       data
     });
     return response.data;
+  },
+
+  async getInsights(teamId: string, month: string): Promise<{ insights: { tipo: string; titulo: string; descricao: string; metricaDeApoio: string }[] }> {
+    const response = await api.get(`/teams/${teamId}/insights`, { params: { month } });
+    return response.data;
   }
 };
 
