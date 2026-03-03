@@ -774,19 +774,19 @@ export function TeamDashboard() {
                                         </div>
 
                                         <div style={{ marginBottom: '16px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
                                                 Manuais Enviados
                                             </label>
                                             <input
                                                 type="number" step="1" min="0"
                                                 value={manualStats.manuals}
                                                 onChange={(e) => setManualStats({ ...manualStats, manuals: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '12px', background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
                                             />
                                         </div>
 
                                         <div style={{ marginBottom: '16px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
                                                 Projetos
                                             </label>
                                             <textarea
@@ -799,7 +799,7 @@ export function TeamDashboard() {
                                         </div>
 
                                         <div style={{ marginBottom: '24px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
                                                 Treinamentos Ministrados
                                             </label>
                                             <textarea
@@ -807,7 +807,7 @@ export function TeamDashboard() {
                                                 placeholder="Liste os treinamentos..."
                                                 value={manualStats.treinamentos}
                                                 onChange={(e) => setManualStats({ ...manualStats, treinamentos: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '12px', background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
                                             />
                                         </div>
 
