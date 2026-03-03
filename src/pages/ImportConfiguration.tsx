@@ -208,10 +208,10 @@ export const ImportConfiguration: React.FC = () => {
             ) : (
               <>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.tickets > 0 ? '#16a34a' : '#94a3b8' }}>
-                  tickets: <strong>{stats.tickets}</strong>
+                  GLPI: <strong>{stats.tickets}</strong>
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.chamados > 0 ? '#16a34a' : '#94a3b8' }}>
-                  chamados: <strong>{stats.chamados}</strong>
+                  JIRA: <strong>{stats.chamados}</strong>
                 </span>
               </>
             )}
@@ -226,9 +226,9 @@ export const ImportConfiguration: React.FC = () => {
             <div style={{ width: '56px', height: '56px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <Upload size={28} color="#0ea5e9" />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar Tickets (CSV)</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar GLPI (CSV)</h3>
             <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '28px', lineHeight: 1.5 }}>
-              Carregue o arquivo CSV exportado do sistema de tickets para o mês de <strong>{selectedMonth}</strong>.
+              Carregue o arquivo CSV exportado do GLPI para o mês de <strong>{selectedMonth}</strong>.
             </p>
             <label style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -249,7 +249,7 @@ export const ImportConfiguration: React.FC = () => {
             <div style={{ width: '56px', height: '56px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <FileSpreadsheet size={28} color="#10b981" />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar Chamados (Jira)</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Importar JIRA (XLSX)</h3>
             <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '28px', lineHeight: 1.5 }}>
               Carregue a planilha XLSX exportada do Jira para o mês de <strong>{selectedMonth}</strong>.
             </p>
