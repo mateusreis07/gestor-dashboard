@@ -24,15 +24,30 @@ export const ImportConfiguration: React.FC = () => {
   // Load stats for selected month when it changes
   useEffect(() => {
     if (resolvedTeamId && selectedMonth) {
-      const data = loadMonthData(resolvedTeamId, selectedMonth);
-      if (data) {
-        setStats({
-          tickets: data.tickets?.length || 0,
-          chamados: data.chamados?.length || 0
+      setLoading(true);
+      teamService.getDashboard(resolvedTeamId, selectedMonth)
+        .then(data => {
+          setStats({
+            tickets: data.tickets?.length || 0,
+            chamados: data.chamados?.length || 0
+          });
+        })
+        .catch(err => {
+          console.error('Failed to fetch dashboard data for import view', err);
+          // Fallback to local storage if API fails or for legacy data
+          const localData = loadMonthData(resolvedTeamId, selectedMonth);
+          if (localData) {
+            setStats({
+              tickets: localData.tickets?.length || 0,
+              chamados: localData.chamados?.length || 0
+            });
+          } else {
+            setStats({ tickets: 0, chamados: 0 });
+          }
+        })
+        .finally(() => {
+          setLoading(false);
         });
-      } else {
-        setStats({ tickets: 0, chamados: 0 });
-      }
     }
   }, [resolvedTeamId, selectedMonth]);
 
