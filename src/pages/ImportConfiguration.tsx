@@ -197,14 +197,24 @@ export const ImportConfiguration: React.FC = () => {
               <Trash size={20} />
             </button>
           </div>
-          <div style={{ marginTop: '12px', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '24px' }}>
+          <div style={{ marginTop: '12px', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '24px', alignItems: 'center' }}>
             <span>Dados salvos neste mês:</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.tickets > 0 ? '#16a34a' : '#94a3b8' }}>
-              tickets: <strong>{stats.tickets}</strong>
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.chamados > 0 ? '#16a34a' : '#94a3b8' }}>
-              chamados: <strong>{stats.chamados}</strong>
-            </span>
+            {loading ? (
+              <div style={{ display: 'flex', gap: '24px' }}>
+                <div style={{ height: '20px', width: '80px', background: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                <div style={{ height: '20px', width: '90px', background: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
+              </div>
+            ) : (
+              <>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.tickets > 0 ? '#16a34a' : '#94a3b8' }}>
+                  tickets: <strong>{stats.tickets}</strong>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: stats.chamados > 0 ? '#16a34a' : '#94a3b8' }}>
+                  chamados: <strong>{stats.chamados}</strong>
+                </span>
+              </>
+            )}
           </div>
         </section>
 
