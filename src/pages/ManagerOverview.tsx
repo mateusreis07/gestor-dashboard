@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { loadTeams, loadTeamTickets, loadTeamChamados } from '../utils/storage';
 import { managerTeamsService } from '../services/teamService';
 import type { Team } from '../utils/types';
-import { LogOut, Settings, Users, BarChart3, ChevronRight, Plus } from 'lucide-react';
+import { LogOut, Settings, Users, BarChart3, ChevronRight, Plus, Database } from 'lucide-react';
 import styles from './ManagerOverview.module.css';
 
 interface TeamWithStats extends Team {
@@ -86,6 +86,13 @@ export function ManagerOverview() {
                 </div>
 
                 <div className={styles.headerActions}>
+                    <button
+                        onClick={() => navigate('/app/import-schema')}
+                        className={styles.manageButton}
+                    >
+                        <Database size={16} />
+                        <span>Esquema de Dados</span>
+                    </button>
                     <button
                         onClick={() => navigate('/app/manager')}
                         className={styles.manageButton}

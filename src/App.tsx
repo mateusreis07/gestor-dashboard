@@ -11,6 +11,7 @@ import { TeamDashboard } from './pages/TeamDashboard';
 import './App.css';
 
 import { ImportConfiguration } from './pages/ImportConfiguration';
+import { ImportSchema } from './pages/ImportSchema';
 import { CorporateDashboard } from './pages/CorporateDashboard';
 
 function App() {
@@ -68,6 +69,11 @@ function App() {
           <Route path="/app/team/:teamId/institucional" element={
             <ProtectedRoute>
               <CorporateDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/app/import-schema" element={
+            <ProtectedRoute>
+              <ImportSchema />
             </ProtectedRoute>
           } />
 
