@@ -1,0 +1,47 @@
+﻿Buscando modelos para a chave: AIzaSyCyt0...
+--- Modelos permitidos para esta chave ---
+ID: models/gemini-2.5-flash | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.5-pro | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.0-flash | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.0-flash-001 | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.0-flash-exp-image-generation | M├®todos: generateContent, countTokens, bidiGenerateContent
+ID: models/gemini-2.0-flash-lite-001 | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.0-flash-lite | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.5-flash-preview-tts | M├®todos: countTokens, generateContent
+ID: models/gemini-2.5-pro-preview-tts | M├®todos: countTokens, generateContent, batchGenerateContent
+ID: models/gemma-3-1b-it | M├®todos: generateContent, countTokens
+ID: models/gemma-3-4b-it | M├®todos: generateContent, countTokens
+ID: models/gemma-3-12b-it | M├®todos: generateContent, countTokens
+ID: models/gemma-3-27b-it | M├®todos: generateContent, countTokens
+ID: models/gemma-3n-e4b-it | M├®todos: generateContent, countTokens
+ID: models/gemma-3n-e2b-it | M├®todos: generateContent, countTokens
+ID: models/gemini-flash-latest | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-flash-lite-latest | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-pro-latest | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.5-flash-lite | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-2.5-flash-image | M├®todos: generateContent, countTokens, batchGenerateContent
+ID: models/gemini-2.5-flash-lite-preview-09-2025 | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3-pro-preview | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3-flash-preview | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3.1-pro-preview | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3.1-pro-preview-customtools | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3.1-flash-lite-preview | M├®todos: generateContent, countTokens, createCachedContent, batchGenerateContent
+ID: models/gemini-3-pro-image-preview | M├®todos: generateContent, countTokens, batchGenerateContent
+ID: models/nano-banana-pro-preview | M├®todos: generateContent, countTokens, batchGenerateContent
+ID: models/gemini-3.1-flash-image-preview | M├®todos: generateContent, countTokens, batchGenerateContent
+ID: models/gemini-robotics-er-1.5-preview | M├®todos: generateContent, countTokens
+ID: models/gemini-2.5-computer-use-preview-10-2025 | M├®todos: generateContent, countTokens
+ID: models/deep-research-pro-preview-12-2025 | M├®todos: generateContent, countTokens
+ID: models/gemini-embedding-001 | M├®todos: embedContent, countTextTokens, countTokens, asyncBatchEmbedContent
+ID: models/aqa | M├®todos: generateAnswer
+ID: models/imagen-4.0-generate-001 | M├®todos: predict
+ID: models/imagen-4.0-ultra-generate-001 | M├®todos: predict
+ID: models/imagen-4.0-fast-generate-001 | M├®todos: predict
+ID: models/veo-2.0-generate-001 | M├®todos: predictLongRunning
+ID: models/veo-3.0-generate-001 | M├®todos: predictLongRunning
+ID: models/veo-3.0-fast-generate-001 | M├®todos: predictLongRunning
+ID: models/veo-3.1-generate-preview | M├®todos: predictLongRunning
+ID: models/veo-3.1-fast-generate-preview | M├®todos: predictLongRunning
+ID: models/gemini-2.5-flash-native-audio-latest | M├®todos: countTokens, bidiGenerateContent
+ID: models/gemini-2.5-flash-native-audio-preview-09-2025 | M├®todos: countTokens, bidiGenerateContent
+ID: models/gemini-2.5-flash-native-audio-preview-12-2025 | M├®todos: countTokens, bidiGenerateContent
