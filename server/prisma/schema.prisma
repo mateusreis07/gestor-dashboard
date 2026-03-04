@@ -79,6 +79,7 @@ model MonthlyData {
   extrajudiciais String? // Novos Extrajudiciais
   documentos    String? // Documentos Emitidos
   movimentos    String? // Movimentos Taxonômicos
+  aiInsights    Json?   // Insights gerados pela IA (Cache)
 
   userId      String
   user        User     @relation(fields: [userId], references: [id])
@@ -93,5 +94,12 @@ model CorporateData {
   id        Int      @id @default(1)
   data      Json
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AiUsage {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique
+  count     Int      @default(0)
   updatedAt DateTime @updatedAt
 }

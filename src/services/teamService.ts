@@ -68,8 +68,8 @@ export const teamService = {
     return response.data;
   },
 
-  async getInsights(teamId: string, month: string): Promise<{ insights: { tipo: string; titulo: string; descricao: string; metricaDeApoio: string }[] }> {
-    const response = await api.get(`/teams/${teamId}/insights`, { params: { month } });
+  async getInsights(teamId: string, month: string, force?: boolean): Promise<{ insights: { tipo: string; titulo: string; descricao: string; metricaDeApoio: string }[], modeloUsado?: string, cotaDiaria?: string, usoHoje?: number }> {
+    const response = await api.get(`/teams/${teamId}/insights`, { params: { month, force: force ? 'true' : undefined } });
     return response.data;
   }
 };

@@ -45,8 +45,73 @@ router.get('/:teamId/insights', authMiddleware, async (req: Request, res: Respon
       });
     }
 
-    const insights = await generateInsights(team.name || team.email, month, tickets, chamados);
-    res.json({ insights });
+    const forceRefresh = req.query.force === 'true';
+
+    // Obter data atual para o limite diário
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dailyUsage = await prisma.aiUsage.findUnique({ where: { date: todayStr } });
+    const callsToday = dailyUsage ? dailyUsage.count : 0;
+
+    // Verify if there's already generated insights for this month
+    let monthlyData = await prisma.monthlyData.findUnique({
+      where: {
+        userId_month: {
+          userId: teamId,
+          month: String(month)
+        }
+      }
+    });
+
+    if (monthlyData && monthlyData.aiInsights && !forceRefresh) {
+      const stored = monthlyData.aiInsights as any;
+      // Handle legacy cache logic where stored is an array [Insight]
+      if (Array.isArray(stored)) {
+        return res.status(200).json({
+          insights: stored,
+          modeloUsado: 'gemini-legacy-cache',
+          cotaDiaria: '15 análises/dia',
+          usoHoje: callsToday
+        });
+      }
+      return res.status(200).json({ ...stored, usoHoje: callsToday });
+    }
+
+    if (!forceRefresh) {
+      // Se o usuário apenas abriu o modal (sem forçar) e não tem insights na DB, não gasta cota da IA, retorna vazio.
+      return res.status(200).json({ insights: [] });
+    }
+
+    // Gerar novos insights
+    const aiResult = await generateInsights(team.name || team.email, month, tickets, chamados);
+
+    // Incrementar o uso e pegar o novo valor
+    const updatedUsage = await prisma.aiUsage.upsert({
+      where: { date: todayStr },
+      update: { count: { increment: 1 } },
+      create: { date: todayStr, count: 1 }
+    });
+
+    const finalResult = { ...aiResult, usoHoje: updatedUsage.count };
+
+    // Save/Update generated insights inside MonthlyData
+    monthlyData = await prisma.monthlyData.upsert({
+      where: {
+        userId_month: {
+          userId: teamId,
+          month: String(month)
+        }
+      },
+      update: {
+        aiInsights: aiResult as any
+      },
+      create: {
+        userId: teamId,
+        month: String(month),
+        aiInsights: finalResult as any
+      }
+    });
+
+    res.json(finalResult);
   } catch (error: any) {
     console.error('Erro na rota de Insights:', error);
     res.status(500).json({ error: 'Erro ao gerar insights.', details: error.message });

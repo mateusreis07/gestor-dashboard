@@ -20,7 +20,7 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown, Sparkles } from 'lucide-react';
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 import InsightsPanel from '../components/Dashboard/InsightsPanel';
@@ -54,6 +54,9 @@ export function TeamDashboard() {
     // Manual Stats State
     const [manualStats, setManualStats] = useState({ satisfaction: '0', manuals: '0', projetos: '', treinamentos: '' });
     const [isEditingStats, setIsEditingStats] = useState(false);
+
+    // Insights Modal State
+    const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
 
     // Month Based View State
     // Month Based View State
@@ -458,6 +461,24 @@ export function TeamDashboard() {
 
                         {/* Right: Actions */}
                         <div className={styles.headerActions}>
+                            {!isExporting && !isLoading && teamId && currentViewMonth && (
+                                <button
+                                    onClick={() => setIsInsightsModalOpen(true)}
+                                    className={styles.configButton}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                        color: '#2563eb',
+                                        borderColor: '#bfdbfe',
+                                        fontWeight: 700,
+                                        boxShadow: '0 2px 4px rgba(37,99,235,0.1)'
+                                    }}
+                                    title="Abrir Central de Insights"
+                                >
+                                    <Sparkles size={16} />
+                                    <span className="desktop-only">IA Insights</span>
+                                </button>
+                            )}
+
                             {role === 'TEAM' && (
                                 <button
                                     onClick={() => navigate(`/app/team/${currentTeam.id}/import`)}
@@ -748,9 +769,26 @@ export function TeamDashboard() {
                                 </div>
                             )}
 
-                            {/* AI INSIGHTS PANEL */}
-                            {!isExporting && !isLoading && teamId && currentViewMonth && (
-                                <InsightsPanel teamId={teamId} month={currentViewMonth} />
+
+
+                            {isInsightsModalOpen && !isExporting && !isLoading && teamId && currentViewMonth && (
+                                <div style={{
+                                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                    background: 'rgba(15, 23, 42, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 2000, backdropFilter: 'blur(3px)', padding: '20px'
+                                }}>
+                                    <div style={{
+                                        background: '#f8fafc', padding: '0', borderRadius: '24px', border: '1px solid #e2e8f0',
+                                        width: '100%', maxWidth: '1100px', maxHeight: '90vh',
+                                        display: 'flex', flexDirection: 'column',
+                                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                                        overflowY: 'auto'
+                                    }}>
+                                        <div style={{ padding: '0 32px 32px 32px', marginTop: '-8px' }}>
+                                            <InsightsPanel teamId={teamId} month={currentViewMonth} onClose={() => setIsInsightsModalOpen(false)} />
+                                        </div>
+                                    </div>
+                                </div>
                             )}
 
                             {/* Manual Stats Edit Modal */}
