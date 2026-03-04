@@ -462,7 +462,7 @@ export function TeamDashboard() {
 
                         {/* Right: Actions */}
                         <div className={styles.headerActions}>
-                            {role === 'TEAM' && teamId && (
+                            {teamId && (
                                 <button
                                     onClick={() => navigate(`/app/team/${teamId}/health-config`)}
                                     className={styles.configButton}
