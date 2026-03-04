@@ -359,23 +359,15 @@ export const HealthScoreConfig: React.FC = () => {
               </div>
               <p>Limitado a 100.</p>
 
-              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>🏁 Fórmula Final</h3>
-              <p><strong>Quando SLA ativo:</strong></p>
-              <div style={{ background: '#f0fdf4', color: '#166534', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px', border: '1px solid #bbf7d0' }}>
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>🏁 Fórmula Final ({config.useSLA ? 'SLA Ativo' : 'SLA Desativado'})</h3>
+              <p>A pontuação final é a soma ponderada dos pilares de acordo com os <strong>Pesos do Algoritmo</strong> configurados nesta página:</p>
+              <div style={{ background: config.useSLA ? '#f0fdf4' : '#f0fdfa', color: config.useSLA ? '#166534' : '#115e59', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px', border: `1px solid ${config.useSLA ? '#bbf7d0' : '#99f6e4'}` }}>
                 Health Score =<br />
-                (SLA × 0.25) +<br />
-                (TMA × 0.20) +<br />
-                (Backlog × 0.25) +<br />
-                (Capacidade × 0.15) +<br />
-                (Produtividade × 0.15)
-              </div>
-              <p><strong>Quando SLA desativado:</strong></p>
-              <div style={{ background: '#f0fdfa', color: '#115e59', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px', border: '1px solid #99f6e4' }}>
-                Health Score =<br />
-                (TMA × 0.25) +<br />
-                (Backlog × 0.30) +<br />
-                (Capacidade × 0.20) +<br />
-                (Produtividade × 0.25)
+                {config.useSLA && `(SLA × ${config.weightSLA.toFixed(2)}) +`} <br style={{ display: config.useSLA ? 'block' : 'none' }} />
+                (TMA × {config.weightTMA.toFixed(2)}) +<br />
+                (Backlog × {config.weightBacklog.toFixed(2)}) +<br />
+                (Capacidade × {config.weightCapac.toFixed(2)}) +<br />
+                (Produtividade × {config.weightProd.toFixed(2)})
               </div>
 
             </div>

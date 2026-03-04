@@ -146,17 +146,20 @@ export async function calculateAndSaveHealthScore(userId: string, month: string)
   const techCount = technicians.size || 1; // Avoid division by zero
   const rawProdTickets = rawClosedCount / techCount;
   const currentCapacity = techCount * config.avgCapacityPerTech; // System total capacity
-  const utilizedCapacity = (rawClosedCount / currentCapacity) * 100;
+
+  // Volume is the total number of incoming requests (Indice de Carga = Volume / Capacidade)
+  const totalVolume = rawTicketsCount + rawChamadosCount;
+  const utilizedCapacity = (totalVolume / currentCapacity) * 100;
 
   // 3. Normalize Scores (0-100)
   const scoreTMA = normalizeScore(rawTMAHours, config.targetTMAHours, config.criticalTMAHours, true);
   const scoreBacklog = normalizeScore(rawBacklogCount, config.targetBacklog, config.criticalBacklog, true);
 
-  // Productivity normalizes based on the per-tech target
-  const scoreProdutiv = normalizeScore(rawProdTickets, config.targetProdPerTech, config.targetProdPerTech * 0.3, false);
+  // Productivity normalizes based on the per-tech target (starts from 0)
+  const scoreProdutiv = normalizeScore(rawProdTickets, config.targetProdPerTech, 0, false);
 
-  // Capacity usage normalizes around 100%. (e.g. 100% capacity used is score 100, 30% is score 0)
-  const scoreCapacidade = normalizeScore(utilizedCapacity, 100, 30, false);
+  // Capacity usage normalizes around 100%. (<= 100% capacity used is score 100, >= 130% is score 0)
+  const scoreCapacidade = normalizeScore(utilizedCapacity, 100, 130, true);
 
   // SLA is optional
   const scoreSLA = config.useSLA ? 100 : null; // Pending real SLA data logic, returning 100 mock for now
