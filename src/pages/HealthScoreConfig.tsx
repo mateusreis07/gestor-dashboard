@@ -199,33 +199,52 @@ export const HealthScoreConfig: React.FC = () => {
           <h2 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px 0', color: '#0f172a' }}>
             <Sliders size={20} color="#8b5cf6" /> Pesos do Algoritmo (%)
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '24px' }}>
-            O percentual de impacto de cada pilar no Health Score final. <br />
-            <strong>Dica:</strong> A soma atual deve representar a proporção total. No backend a soma atual será equivalente a 100%. (Ex: SLA 0.25 = 25%)
-          </p>
+          {(() => {
+            const activeWeightSum = config.useSLA
+              ? (config.weightSLA + config.weightTMA + config.weightBacklog + config.weightCapac + config.weightProd)
+              : (config.weightTMA + config.weightBacklog + config.weightCapac + config.weightProd);
 
-          <div style={flexRow}>
-            <div style={{ flex: '1 1 120px' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Peso SLA</label>
-              <input type="number" step="0.05" value={config.weightSLA} onChange={e => setConfig({ ...config, weightSLA: parseFloat(e.target.value) })} style={inputStyle} disabled={!config.useSLA} />
-            </div>
-            <div style={{ flex: '1 1 120px' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Peso TMA</label>
-              <input type="number" step="0.05" value={config.weightTMA} onChange={e => setConfig({ ...config, weightTMA: parseFloat(e.target.value) })} style={inputStyle} />
-            </div>
-            <div style={{ flex: '1 1 120px' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Peso Backlog</label>
-              <input type="number" step="0.05" value={config.weightBacklog} onChange={e => setConfig({ ...config, weightBacklog: parseFloat(e.target.value) })} style={inputStyle} />
-            </div>
-            <div style={{ flex: '1 1 120px' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Peso Capacidade</label>
-              <input type="number" step="0.05" value={config.weightCapac} onChange={e => setConfig({ ...config, weightCapac: parseFloat(e.target.value) })} style={inputStyle} />
-            </div>
-            <div style={{ flex: '1 1 120px' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>Peso Produtividade</label>
-              <input type="number" step="0.05" value={config.weightProd} onChange={e => setConfig({ ...config, weightProd: parseFloat(e.target.value) })} style={inputStyle} />
-            </div>
-          </div>
+            const getEffectivePct = (weight: number, isSla = false) => {
+              if (isSla && !config.useSLA) return '0%';
+              if (activeWeightSum === 0) return '0%';
+              return Math.round((weight / activeWeightSum) * 100) + '%';
+            };
+
+            return (
+              <div style={flexRow}>
+                <div style={{ flex: '1 1 120px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '0.85rem', color: config.useSLA ? '#334155' : '#94a3b8' }}>
+                    Peso SLA <span style={{ color: config.useSLA ? '#0ea5e9' : '#94a3b8', marginLeft: 4 }}>({getEffectivePct(config.weightSLA, true)})</span>
+                  </label>
+                  <input type="number" step="0.05" value={config.weightSLA} onChange={e => setConfig({ ...config, weightSLA: parseFloat(e.target.value) })} style={inputStyle} disabled={!config.useSLA} />
+                </div>
+                <div style={{ flex: '1 1 120px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    Peso TMA <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightTMA)})</span>
+                  </label>
+                  <input type="number" step="0.05" value={config.weightTMA} onChange={e => setConfig({ ...config, weightTMA: parseFloat(e.target.value) })} style={inputStyle} />
+                </div>
+                <div style={{ flex: '1 1 120px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    Peso Backlog <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightBacklog)})</span>
+                  </label>
+                  <input type="number" step="0.05" value={config.weightBacklog} onChange={e => setConfig({ ...config, weightBacklog: parseFloat(e.target.value) })} style={inputStyle} />
+                </div>
+                <div style={{ flex: '1 1 120px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    Peso Capacidade <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightCapac)})</span>
+                  </label>
+                  <input type="number" step="0.05" value={config.weightCapac} onChange={e => setConfig({ ...config, weightCapac: parseFloat(e.target.value) })} style={inputStyle} />
+                </div>
+                <div style={{ flex: '1 1 120px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    Peso Produtiv. <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightProd)})</span>
+                  </label>
+                  <input type="number" step="0.05" value={config.weightProd} onChange={e => setConfig({ ...config, weightProd: parseFloat(e.target.value) })} style={inputStyle} />
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
       </div>
