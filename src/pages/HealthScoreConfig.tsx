@@ -137,10 +137,10 @@ export const HealthScoreConfig: React.FC = () => {
                     // Redistribute SLA weight to others, zero out SLA
                     if (sumOthers > 0) {
                       const factor = 1 / sumOthers;
-                      newConfig.weightTMA = Number((config.weightTMA * factor).toFixed(3));
-                      newConfig.weightBacklog = Number((config.weightBacklog * factor).toFixed(3));
-                      newConfig.weightCapac = Number((config.weightCapac * factor).toFixed(3));
-                      newConfig.weightProd = Number((config.weightProd * factor).toFixed(3));
+                      newConfig.weightTMA = Number((config.weightTMA * factor).toFixed(2));
+                      newConfig.weightBacklog = Number((config.weightBacklog * factor).toFixed(2));
+                      newConfig.weightCapac = Number((config.weightCapac * factor).toFixed(2));
+                      newConfig.weightProd = Number((config.weightProd * factor).toFixed(2));
                     }
                     newConfig.weightSLA = 0;
                   } else {
@@ -148,12 +148,12 @@ export const HealthScoreConfig: React.FC = () => {
                     newConfig.weightSLA = 0.25;
                     if (sumOthers > 0) {
                       const factor = 0.75 / sumOthers;
-                      newConfig.weightTMA = Number((config.weightTMA * factor).toFixed(3));
-                      newConfig.weightBacklog = Number((config.weightBacklog * factor).toFixed(3));
-                      newConfig.weightCapac = Number((config.weightCapac * factor).toFixed(3));
-                      newConfig.weightProd = Number((config.weightProd * factor).toFixed(3));
+                      newConfig.weightTMA = Number((config.weightTMA * factor).toFixed(2));
+                      newConfig.weightBacklog = Number((config.weightBacklog * factor).toFixed(2));
+                      newConfig.weightCapac = Number((config.weightCapac * factor).toFixed(2));
+                      newConfig.weightProd = Number((config.weightProd * factor).toFixed(2));
                     } else {
-                      newConfig.weightTMA = 0.2;
+                      newConfig.weightTMA = 0.20;
                       newConfig.weightBacklog = 0.25;
                       newConfig.weightCapac = 0.15;
                       newConfig.weightProd = 0.15;
@@ -250,31 +250,31 @@ export const HealthScoreConfig: React.FC = () => {
                   <label style={{ fontWeight: 600, fontSize: '0.85rem', color: config.useSLA ? '#334155' : '#94a3b8' }}>
                     SLA <span style={{ color: config.useSLA ? '#0ea5e9' : '#94a3b8', marginLeft: 4 }}>({getEffectivePct(config.weightSLA, true)})</span>
                   </label>
-                  <input type="number" step="0.05" value={config.weightSLA} onChange={e => setConfig({ ...config, weightSLA: parseFloat(e.target.value) })} style={inputStyle} disabled={!config.useSLA} />
+                  <input type="number" step="0.01" value={config.weightSLA.toFixed(2)} onChange={e => setConfig({ ...config, weightSLA: parseFloat(e.target.value) || 0 })} style={inputStyle} disabled={!config.useSLA} />
                 </div>
                 <div style={{ flex: '1 1 120px', minWidth: '110px' }}>
                   <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
                     TMA <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightTMA)})</span>
                   </label>
-                  <input type="number" step="0.05" value={config.weightTMA} onChange={e => setConfig({ ...config, weightTMA: parseFloat(e.target.value) })} style={inputStyle} />
+                  <input type="number" step="0.01" value={config.weightTMA.toFixed(2)} onChange={e => setConfig({ ...config, weightTMA: parseFloat(e.target.value) || 0 })} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 120px', minWidth: '110px' }}>
                   <label style={{ fontWeight: 600, fontSize: '0.85rem' }}>
                     Backlog <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightBacklog)})</span>
                   </label>
-                  <input type="number" step="0.05" value={config.weightBacklog} onChange={e => setConfig({ ...config, weightBacklog: parseFloat(e.target.value) })} style={inputStyle} />
+                  <input type="number" step="0.01" value={config.weightBacklog.toFixed(2)} onChange={e => setConfig({ ...config, weightBacklog: parseFloat(e.target.value) || 0 })} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 120px', minWidth: '110px' }}>
                   <label style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                     Capacidade <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightCapac)})</span>
                   </label>
-                  <input type="number" step="0.05" value={config.weightCapac} onChange={e => setConfig({ ...config, weightCapac: parseFloat(e.target.value) })} style={inputStyle} />
+                  <input type="number" step="0.01" value={config.weightCapac.toFixed(2)} onChange={e => setConfig({ ...config, weightCapac: parseFloat(e.target.value) || 0 })} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 120px', minWidth: '110px' }}>
                   <label style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                     Produtiv. <span style={{ color: '#0ea5e9', marginLeft: 4 }}>({getEffectivePct(config.weightProd)})</span>
                   </label>
-                  <input type="number" step="0.05" value={config.weightProd} onChange={e => setConfig({ ...config, weightProd: parseFloat(e.target.value) })} style={inputStyle} />
+                  <input type="number" step="0.01" value={config.weightProd.toFixed(2)} onChange={e => setConfig({ ...config, weightProd: parseFloat(e.target.value) || 0 })} style={inputStyle} />
                 </div>
               </div>
             );
