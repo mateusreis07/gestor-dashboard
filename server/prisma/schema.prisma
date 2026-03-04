@@ -19,9 +19,11 @@ model User {
   updatedAt    DateTime    @updatedAt
 
   // Relations
-  tickets      Ticket[]
-  chamados     Chamado[]
-  monthlyStats MonthlyData[]
+  tickets        Ticket[]
+  chamados       Chamado[]
+  monthlyStats   MonthlyData[]
+  healthConfigs  HealthScoreConfig[]
+  healthHistory  HealthScoreHistory[]
 }
 
 enum UserRole {
@@ -102,4 +104,64 @@ model AiUsage {
   date      String   @unique
   count     Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+// Configurações do Health Score (Versionáveis)
+model HealthScoreConfig {
+  id             Int      @id @default(autoincrement())
+  userId         String   // Gestor/Time
+  user           User     @relation(fields: [userId], references: [id])
+  active         Boolean  @default(true)
+  version        Int      @default(1) // Para reprocessar histórico com pesos antigos se necessário ou aplicar novos retroativamente
+
+  // Modos e Pesos
+  useSLA         Boolean  @default(false)
+  weightSLA      Float    @default(0.25)
+  weightTMA      Float    @default(0.20)
+  weightBacklog  Float    @default(0.25)
+  weightCapac    Float    @default(0.15)
+  weightProd     Float    @default(0.15)
+  weightSatis    Float    @default(0.0) // Futuro
+
+  // Metas (Gatilhos de Normalização 0-100)
+  targetTMAHours       Float // Meta ideal TMA (horas)
+  criticalTMAHours     Float // Limite crítico TMA (horas) (score 0)
+  targetBacklog        Int
+  criticalBacklog      Int
+  targetProdPerTech    Int   // Produtividade por técnico
+  avgCapacityPerTech   Int   // Capacidade média por técnico
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, version])
+}
+
+// Armazenamento dos Resultados Calculados (Cache Permanente)
+model HealthScoreHistory {
+  id              String   @id @default(uuid())
+  userId          String   // Gestor/Time
+  user            User     @relation(fields: [userId], references: [id])
+  month           String   // Ex: YYYY-MM
+  configVersion   Int      // Qual versão da config gerou este score
+
+  // Scores Normalizados (0-100)
+  scoreTotal      Float
+  scoreSLA        Float?   // Nulo se useSLA = false
+  scoreTMA        Float
+  scoreBacklog    Float
+  scoreCapacidade Float
+  scoreProdutiv   Float
+
+  // Extrato Bruto Base (Para não recalcular sempre)
+  rawTicketsCount Int
+  rawChamadosCount Int
+  rawTMAHours     Float
+  rawBacklogCount Int
+  rawProdTickets  Int
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, month, configVersion])
 }

@@ -7,6 +7,7 @@ import teamRoutes from './routes/teamRoutes';
 import teamsRoutes from './routes/teamsRoutes';
 import corporateRoutes from './routes/corporateRoutes';
 import insightsRoutes from './routes/insightsRoutes';
+import healthScoreRoutes from './routes/healthScoreRoutes';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/teams', insightsRoutes);
+app.use('/api/teams', healthScoreRoutes);
 app.use('/api/manager/teams', teamsRoutes);
 app.use('/api/corporate', corporateRoutes);
 

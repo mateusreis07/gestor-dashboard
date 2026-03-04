@@ -20,9 +20,10 @@ import { getStatusStats, getFuncionalidadeStats, filterChamadosByDateRange } fro
 import { getAvailableMonths, loadMonthData, loadTeams } from '../utils/storage';
 import { teamService } from '../services/teamService';
 import type { Ticket, Team, Chamado } from '../utils/types';
-import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown, Sparkles } from 'lucide-react';
+import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket as TicketIcon, Heart, Share2, Calendar, Settings, Building2, FolderKanban, GraduationCap, BarChart2, Loader2, FileDown, Sparkles, HeartPulse } from 'lucide-react';
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
+import { HealthScoreGauge } from '../components/Dashboard/HealthScoreGauge';
 import InsightsPanel from '../components/Dashboard/InsightsPanel';
 import styles from './TeamDashboard.module.css';
 
@@ -461,6 +462,24 @@ export function TeamDashboard() {
 
                         {/* Right: Actions */}
                         <div className={styles.headerActions}>
+                            {role === 'TEAM' && teamId && (
+                                <button
+                                    onClick={() => navigate(`/app/team/${teamId}/health-config`)}
+                                    className={styles.configButton}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        fontWeight: 600,
+                                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                                    }}
+                                    title="Configurar Health Score"
+                                >
+                                    <HeartPulse size={16} />
+                                    <span className="desktop-only">Health Score</span>
+                                </button>
+                            )}
+
                             {!isExporting && !isLoading && teamId && currentViewMonth && (
                                 <button
                                     onClick={() => setIsInsightsModalOpen(true)}
@@ -663,6 +682,11 @@ export function TeamDashboard() {
                             {/* KPI Cards Row */}
                             {!isLoading && (
                                 <div className="pdf-page-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+
+                                    {/* Card 0: Health Score Gauge */}
+                                    {teamId && currentViewMonth && (
+                                        <HealthScoreGauge teamId={teamId} month={currentViewMonth} />
+                                    )}
 
                                     {/* Card 1: Total Tickets (Violet) */}
                                     <div style={{

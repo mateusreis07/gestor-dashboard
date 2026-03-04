@@ -12,6 +12,7 @@ import './App.css';
 
 import { ImportConfiguration } from './pages/ImportConfiguration';
 import { ImportSchema } from './pages/ImportSchema';
+import { HealthScoreConfig } from './pages/HealthScoreConfig';
 import { CorporateDashboard } from './pages/CorporateDashboard';
 
 function App() {
@@ -44,6 +45,11 @@ function App() {
           <Route path="/app/team/:teamId/indicadores" element={
             <ProtectedRoute>
               <TeamDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/app/team/:teamId/health-config" element={
+            <ProtectedRoute>
+              <HealthScoreConfig />
             </ProtectedRoute>
           } />
           <Route path="/app/team/:teamId/import" element={
