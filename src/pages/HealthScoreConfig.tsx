@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { healthScoreService, type HealthScoreConfigData } from '../services/healthScoreService';
-import { ArrowLeft, Save, HeartPulse, Sliders, Activity, Clock, Layers, Users, ShieldAlert, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save, HeartPulse, Sliders, Activity, Clock, Layers, Users, ShieldAlert, CheckCircle, Info, X } from 'lucide-react';
 
 export const HealthScoreConfig: React.FC = () => {
   const { teamId } = useParams();
@@ -10,6 +10,7 @@ export const HealthScoreConfig: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   useEffect(() => {
     if (!teamId) return;
@@ -96,19 +97,32 @@ export const HealthScoreConfig: React.FC = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              background: '#0ea5e9', color: '#fff', border: 'none', padding: '12px 24px',
-              borderRadius: '10px', fontSize: '0.95rem', fontWeight: 600, display: 'flex',
-              alignItems: 'center', gap: '8px', cursor: 'pointer',
-              opacity: saving ? 0.7 : 1
-            }}
-          >
-            <Save size={18} />
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => setShowRulesModal(true)}
+              style={{
+                background: '#f1f5f9', color: '#475569', border: 'none', padding: '12px 16px',
+                borderRadius: '10px', fontSize: '0.95rem', fontWeight: 600, display: 'flex',
+                alignItems: 'center', gap: '8px', cursor: 'pointer'
+              }}
+            >
+              <Info size={18} />
+              Entender Cálculos
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                background: '#0ea5e9', color: '#fff', border: 'none', padding: '12px 24px',
+                borderRadius: '10px', fontSize: '0.95rem', fontWeight: 600, display: 'flex',
+                alignItems: 'center', gap: '8px', cursor: 'pointer',
+                opacity: saving ? 0.7 : 1
+              }}
+            >
+              <Save size={18} />
+              {saving ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
         </header>
 
         {successMsg && (
@@ -282,6 +296,92 @@ export const HealthScoreConfig: React.FC = () => {
         </div>
 
       </div>
+
+      {/* --- MODAL DE REGRAS --- */}
+      {showRulesModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '800px',
+            maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            display: 'flex', flexDirection: 'column'
+          }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '16px 16px 0 0' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.3rem', color: '#0f172a' }}>
+                <Info color="#0ea5e9" size={24} />
+                Como calcular cada Score
+              </h2>
+              <button onClick={() => setShowRulesModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}>
+                <X size={24} />
+              </button>
+            </div>
+            <div style={{ padding: '24px', color: '#334155', fontSize: '0.95rem', lineHeight: '1.6' }}>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: 0 }}>1️⃣ SLA (Score_SLA)</h3>
+              <p>Baseado em percentual de chamados dentro do SLA.</p>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px' }}>
+                Score_SLA = Percentual_SLA
+              </div>
+              <p><strong>Exemplo:</strong> 92% dentro do SLA → Score = 92.<br /><em>Simples e direto.</em></p>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>2️⃣ Tempo Médio (Score_TMA)</h3>
+              <p>Definições configuráveis: Meta ideal (ex: 24h), Limite crítico (ex: 72h).</p>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px' }}>
+                Score_TMA = 100 - ((TMA - Meta) / (Limite - Meta)) * 100
+              </div>
+              <p>Limitado entre 0 e 100.</p>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>3️⃣ Backlog (Score_Backlog)</h3>
+              <p>Definições configuráveis: Backlog ideal (ex: 20), Backlog crítico (ex: 100).</p>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px' }}>
+                Score_Backlog = 100 - ((Backlog - Ideal) / (Critico - Ideal)) * 100
+              </div>
+              <p>Limitado entre 0 e 100.</p>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>4️⃣ Volume vs Capacidade (Score_Capacidade)</h3>
+              <p>Capacidade = Número de analistas × média esperada por analista.</p>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px' }}>
+                Indice_Carga = Volume / Capacidade
+              </div>
+              <ul style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
+                <li>Se <strong>&lt;= 1</strong> → 100 pontos</li>
+                <li>Se <strong>= 1.3</strong> → 0 pontos</li>
+                <li>Entre <strong>1 e 1.3</strong> → interpolação linear</li>
+              </ul>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>5️⃣ Produtividade (Score_Prod)</h3>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px' }}>
+                Score_Prod = (Produtividade_Atual / Meta) * 100
+              </div>
+              <p>Limitado a 100.</p>
+
+              <h3 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginTop: '32px' }}>🏁 Fórmula Final</h3>
+              <p><strong>Quando SLA ativo:</strong></p>
+              <div style={{ background: '#f0fdf4', color: '#166534', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px', border: '1px solid #bbf7d0' }}>
+                Health Score =<br />
+                (SLA × 0.25) +<br />
+                (TMA × 0.20) +<br />
+                (Backlog × 0.25) +<br />
+                (Capacidade × 0.15) +<br />
+                (Produtividade × 0.15)
+              </div>
+              <p><strong>Quando SLA desativado:</strong></p>
+              <div style={{ background: '#f0fdfa', color: '#115e59', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', marginBottom: '16px', border: '1px solid #99f6e4' }}>
+                Health Score =<br />
+                (TMA × 0.25) +<br />
+                (Backlog × 0.30) +<br />
+                (Capacidade × 0.20) +<br />
+                (Produtividade × 0.25)
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
