@@ -148,10 +148,11 @@ export const saveManualStats = async (req: Request, res: Response) => {
 };
 
 // Helper para converter data DD/MM/YYYY HH:mm ou MM/DD/YY para ISO
-const formatDateToISO = (dateStr: string, fallbackMonth?: string): string => {
-  const defaultFallback = fallbackMonth ? `${fallbackMonth}-01T00:00:00.000Z` : new Date().toISOString();
-
-  if (!dateStr) return defaultFallback;
+const formatDateToISO = (dateStr: string, fallbackMonth?: string, allowEmpty?: boolean): string | null => {
+  if (!dateStr || dateStr.trim() === '') {
+    if (allowEmpty) return null;
+    return fallbackMonth ? `${fallbackMonth}-01T00:00:00.000Z` : new Date().toISOString();
+  }
 
   // Se já for ISO e válido
   if (dateStr.includes('-') && (dateStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dateStr))) return dateStr;
@@ -215,7 +216,8 @@ const formatDateToISO = (dateStr: string, fallbackMonth?: string): string => {
   }
 
   // Fallback para o mês selecionado caso não consiga parsear
-  return defaultFallback;
+  if (allowEmpty) return null;
+  return fallbackMonth ? `${fallbackMonth}-01T00:00:00.000Z` : new Date().toISOString();
 };
 
 export const uploadData = async (req: Request, res: Response) => {
@@ -245,7 +247,8 @@ export const uploadData = async (req: Request, res: Response) => {
         originalId: String(t['ID'] || t['id'] || t['originalId'] || ''),
         titulo: String(t['Título'] || t['titulo'] || 'Sem Título'),
         status: String(t['Status'] || t['status'] || 'Desconhecido'),
-        dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || ''), month),
+        dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || ''), month) || '',
+        ultimaAtualizacao: formatDateToISO(String(t['Última atualização'] || t['ultimaAtualizacao'] || ''), month, true),
         requerente: String(t['Requerente - Requerente'] || t['requerente'] || ''),
         tecnico: String(t['Atribuído - Técnico'] || t['tecnico'] || ''),
         categoria: String(t['Categoria'] || t['categoria'] || ''),
@@ -276,8 +279,8 @@ export const uploadData = async (req: Request, res: Response) => {
         numeroChamado: String(c['Numero'] || c['numeroChamado'] || ''),
         resumo: String(c['Resumo'] || c['resumo'] || ''),
         statusChamado: String(c['Status'] || c['statusChamado'] || 'Aberto'),
-        criado: formatDateToISO(String(c['Criado'] || c['criado'] || ''), month),
-        fimDoPrazo: formatDateToISO(String(c['Fim do prazo'] || c['fimDoPrazo'] || ''), month),
+        criado: formatDateToISO(String(c['Criado'] || c['criado'] || ''), month) || '',
+        fimDoPrazo: formatDateToISO(String(c['Fim do prazo'] || c['fimDoPrazo'] || ''), month) || '',
         prazoAjustado: String(c['Prazo ajustado'] || c['prazoAjustado'] || ''),
         relator: String(c['Relator'] || c['relator'] || ''),
         modulo: String(c['Modulo'] || c['modulo'] || ''),
