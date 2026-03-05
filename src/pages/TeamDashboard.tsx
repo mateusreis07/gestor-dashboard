@@ -1289,7 +1289,7 @@ export function TeamDashboard() {
                                         <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Nota de saúde operacional consolidada do time</p>
                                     </div>
                                 </div>
-                                {role === 'TEAM' && teamId && (
+                                {teamId && (
                                     <button
                                         onClick={() => navigate(`/app/team/${teamId}/health-config`)}
                                         style={{
