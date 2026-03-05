@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
-import { getOrCreateConfig, saveConfig, getHealthScoreHistory, calculateAndSaveHealthScore } from '../services/healthScoreService';
+import { getOrCreateConfig, saveConfig, getHealthScoreHistory, calculateAndSaveHealthScore, getHealthScoreDetails } from '../services/healthScoreService';
 import { prisma } from '../prisma';
 
 const router = Router();
@@ -36,6 +36,40 @@ router.get('/:teamId/health-score', authMiddleware, async (req: Request, res: Re
   } catch (error: any) {
     console.error('Error fetching health score:', error);
     return res.status(500).json({ error: 'Erro ao processar Health Score' });
+  }
+});
+
+// Get the detailed Drill-Down for Health Score
+router.get('/:teamId/health-score/details', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const teamId = String(req.params.teamId);
+    const month = req.query.month ? String(req.query.month) : undefined;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Parâmetro month (YYYY-MM) é obrigatório.' });
+    }
+
+    const team = await prisma.user.findUnique({
+      where: { id: teamId, role: 'TEAM' },
+    });
+
+    if (!team) {
+      return res.status(404).json({ error: 'Time não encontrado' });
+    }
+
+    const result = await getHealthScoreDetails(teamId, month);
+
+    if (!result) {
+      return res.status(200).json({
+        status: 'empty',
+        message: `Nenhum dado encontrado para o mês ${month}.`
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (error: any) {
+    console.error('Error fetching health score details:', error);
+    return res.status(500).json({ error: 'Erro ao processar Health Score Details' });
   }
 });
 

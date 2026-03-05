@@ -24,6 +24,7 @@ import { ArrowLeft, LogOut, LayoutDashboard, Edit2, Star, ClipboardList, Ticket 
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import { YearlyLineChart } from '../components/Dashboard/YearlyLineChart';
 import { HealthScoreGauge } from '../components/Dashboard/HealthScoreGauge';
+import { HealthScoreInsights } from '../components/Dashboard/HealthScoreInsights';
 import InsightsPanel from '../components/Dashboard/InsightsPanel';
 import styles from './TeamDashboard.module.css';
 
@@ -35,11 +36,18 @@ export function TeamDashboard() {
 
     // Determine default tab from URL path
     const isIndicadoresPath = location.pathname.includes('/indicadores');
-    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores'>(isIndicadoresPath ? 'indicadores' : 'geral');
+    const isHealthScorePath = location.pathname.includes('/health-score') && !location.pathname.includes('/health-config');
+    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores' | 'health-score'>(isHealthScorePath ? 'health-score' : isIndicadoresPath ? 'indicadores' : 'geral');
 
     // Sync state if URL changes externally
     useEffect(() => {
-        setActiveTab(location.pathname.includes('/indicadores') ? 'indicadores' : 'geral');
+        if (location.pathname.includes('/health-score') && !location.pathname.includes('/health-config')) {
+            setActiveTab('health-score');
+        } else if (location.pathname.includes('/indicadores')) {
+            setActiveTab('indicadores');
+        } else {
+            setActiveTab('geral');
+        }
     }, [location.pathname]);
 
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
@@ -464,16 +472,16 @@ export function TeamDashboard() {
                         <div className={styles.headerActions}>
                             {teamId && (
                                 <button
-                                    onClick={() => navigate(`/app/team/${teamId}/health-config`)}
+                                    onClick={() => { setActiveTab('health-score'); navigate(`/app/team/${teamId}/health-score`); }}
                                     className={styles.configButton}
                                     style={{
-                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        background: activeTab === 'health-score' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                                         color: '#ffffff',
                                         border: 'none',
                                         fontWeight: 600,
                                         boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
                                     }}
-                                    title="Configurar Health Score"
+                                    title="Ver Health Score"
                                 >
                                     <HeartPulse size={16} />
                                     <span className="desktop-only">Health Score</span>
@@ -643,7 +651,7 @@ export function TeamDashboard() {
                             </div>
                             <div>
                                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                                    {activeTab === 'geral' ? 'Visão Operacional' : 'KPIs e Indicadores'} - {currentTeam.name}
+                                    {activeTab === 'geral' ? 'Visão Operacional' : activeTab === 'indicadores' ? 'KPIs e Indicadores' : 'Health Score'} - {currentTeam.name}
                                 </h1>
                                 <p style={{ fontSize: '1rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
                                     Mês de Referência: {currentViewMonth ? currentViewMonth.split('-').reverse().join('/') : ''}
@@ -673,6 +681,12 @@ export function TeamDashboard() {
                                 <Building2 size={20} />
                                 Dados Institucionais
                             </button>
+                            <button
+                                onClick={() => { setActiveTab('health-score'); navigate(teamId ? `/app/team/${teamId}/health-score` : '/app/health-score'); }}
+                                className={`${styles.tabButton} ${activeTab === 'health-score' ? styles.active : ''}`}>
+                                <HeartPulse size={20} />
+                                Health Score
+                            </button>
                         </div>
                     )}
 
@@ -682,11 +696,6 @@ export function TeamDashboard() {
                             {/* KPI Cards Row */}
                             {!isLoading && (
                                 <div className="pdf-page-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-
-                                    {/* Card 0: Health Score Gauge */}
-                                    {teamId && currentViewMonth && (
-                                        <HealthScoreGauge teamId={teamId} month={currentViewMonth} />
-                                    )}
 
                                     {/* Card 1: Total Tickets (Violet) */}
                                     <div style={{
@@ -1105,7 +1114,7 @@ export function TeamDashboard() {
 
 
                         </>
-                    ) : (
+                    ) : activeTab === 'indicadores' ? (
                         <>
                             {/* INDICADORES VIEW */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -1264,6 +1273,43 @@ export function TeamDashboard() {
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {/* HEALTH SCORE VIEW */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                                        <HeartPulse size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Health Score</h2>
+                                        <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Nota de saúde operacional consolidada do time</p>
+                                    </div>
+                                </div>
+                                {role === 'TEAM' && teamId && (
+                                    <button
+                                        onClick={() => navigate(`/app/team/${teamId}/health-config`)}
+                                        style={{
+                                            background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0',
+                                            padding: '8px 16px', borderRadius: '8px', fontSize: '0.85rem',
+                                            fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                                        }}
+                                    >
+                                        <Settings size={16} />
+                                        Configurar Pesos
+                                    </button>
+                                )}
+                            </div>
+
+                            {teamId && currentViewMonth && (
+                                <div>
+                                    <div style={{ maxWidth: '480px' }}>
+                                        <HealthScoreGauge teamId={teamId} month={currentViewMonth} />
+                                    </div>
+                                    <HealthScoreInsights teamId={teamId} month={currentViewMonth} />
                                 </div>
                             )}
                         </>

@@ -47,6 +47,11 @@ function App() {
               <TeamDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/app/team/:teamId/health-score" element={
+            <ProtectedRoute>
+              <TeamDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/app/team/:teamId/health-config" element={
             <ProtectedRoute>
               <HealthScoreConfig />

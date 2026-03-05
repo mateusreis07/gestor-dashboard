@@ -256,3 +256,150 @@ export async function getHealthScoreHistory(userId: string, month: string) {
 
   return { history, config };
 }
+
+export async function getHealthScoreDetails(userId: string, month: string) {
+  const config = await getOrCreateConfig(userId);
+
+  // 1. Fetch Raw Data
+  const dateFilter = { startsWith: String(month) };
+  const tickets = await prisma.ticket.findMany({ where: { userId, dataAbertura: dateFilter } });
+  const chamados = await prisma.chamado.findMany({ where: { userId, criado: dateFilter } });
+
+  const rawTicketsCount = tickets.length;
+  const rawChamadosCount = chamados.length;
+
+  if (rawTicketsCount === 0 && rawChamadosCount === 0) {
+    return null;
+  }
+
+  // 2. Compute Aggregates
+  const closedStatuses = ['resolvido', 'fechado', 'concluído', 'concluido'];
+  let totalHours = 0;
+  let validTMACount = 0;
+  let rawBacklogCount = 0;
+  let rawClosedCount = 0;
+  const technicians = new Set<string>();
+
+  tickets.forEach(t => {
+    const isClosed = closedStatuses.includes(t.status.trim().toLowerCase());
+    if (t.ultimaAtualizacao && t.dataAbertura) {
+      const hours = parseDateStrings(t.dataAbertura, t.ultimaAtualizacao);
+      if (hours > 0) { totalHours += hours; validTMACount++; }
+    }
+    if (!isClosed) rawBacklogCount++;
+    if (isClosed) rawClosedCount++;
+    if (t.tecnico && t.tecnico !== '-') technicians.add(t.tecnico.trim());
+  });
+
+  chamados.forEach(c => {
+    const isClosed = closedStatuses.includes(c.statusChamado.trim().toLowerCase());
+    if (!isClosed) rawBacklogCount++;
+    if (isClosed) rawClosedCount++;
+    if (c.relator && c.relator !== '-') technicians.add(c.relator.trim());
+  });
+
+  const techCount = technicians.size || 1;
+  const rawTMAHours = validTMACount > 0 ? (totalHours / validTMACount) : 0;
+  const rawProdTickets = rawClosedCount / techCount;
+  const currentCapacity = techCount * config.avgCapacityPerTech;
+  const totalVolume = rawTicketsCount + rawChamadosCount;
+  const utilizedCapacity = (totalVolume / currentCapacity) * 100;
+
+  // 3. Normalize Scores
+  const scoreTMA = normalizeScore(rawTMAHours, config.targetTMAHours, config.criticalTMAHours, true);
+  const scoreBacklog = normalizeScore(rawBacklogCount, config.targetBacklog, config.criticalBacklog, true);
+  const scoreProdutiv = normalizeScore(rawProdTickets, config.targetProdPerTech, 0, false);
+  const scoreCapacidade = normalizeScore(utilizedCapacity, 100, 130, true);
+  const scoreSLA = config.useSLA ? 100 : null; // Pending actual SLA tracking
+
+  // 4. Detailed Evaluation
+  const totalCurrentWeight = config.useSLA
+    ? 1
+    : (config.weightTMA + config.weightBacklog + config.weightCapac + config.weightProd);
+  const factor = config.useSLA ? 1 : (1 / totalCurrentWeight);
+
+  const effectiveWeights = {
+    sla: config.useSLA ? config.weightSLA : 0,
+    tma: config.useSLA ? config.weightTMA : config.weightTMA * factor,
+    backlog: config.useSLA ? config.weightBacklog : config.weightBacklog * factor,
+    capacidade: config.useSLA ? config.weightCapac : config.weightCapac * factor,
+    produtividade: config.useSLA ? config.weightProd : config.weightProd * factor,
+  };
+
+  let finalScore =
+    ((scoreSLA || 0) * effectiveWeights.sla) +
+    (scoreTMA * effectiveWeights.tma) +
+    (scoreBacklog * effectiveWeights.backlog) +
+    (scoreCapacidade * effectiveWeights.capacidade) +
+    (scoreProdutiv * effectiveWeights.produtividade);
+  finalScore = Math.max(0, Math.min(100, Math.round(finalScore * 10) / 10));
+
+  const pillars = {
+    sla: {
+      active: config.useSLA,
+      score: scoreSLA || 0,
+      effectiveWeight: effectiveWeights.sla,
+      raw: { value: 100, target: 100 },
+      contribution: (scoreSLA || 0) * effectiveWeights.sla,
+      formula: "Simples percentual de tickets resolvidos no prazo (Em breve: leitura real de logs).",
+    },
+    tma: {
+      score: scoreTMA,
+      effectiveWeight: effectiveWeights.tma,
+      raw: { value: rawTMAHours, target: config.targetTMAHours, critical: config.criticalTMAHours, validTickets: validTMACount },
+      contribution: scoreTMA * effectiveWeights.tma,
+      formula: "score = ((Crítico - ValorAtual) / (Crítico - Alvo)) * 100. Limitado: Min 0, Max 100.",
+    },
+    backlog: {
+      score: scoreBacklog,
+      effectiveWeight: effectiveWeights.backlog,
+      raw: { value: rawBacklogCount, target: config.targetBacklog, critical: config.criticalBacklog },
+      contribution: scoreBacklog * effectiveWeights.backlog,
+      formula: "score = ((Crítico - BacklogAtual) / (Crítico - Alvo)) * 100. Limitado: Min 0, Max 100.",
+    },
+    capacidade: {
+      score: scoreCapacidade,
+      effectiveWeight: effectiveWeights.capacidade,
+      raw: {
+        techCount,
+        baseCapacity: config.avgCapacityPerTech,
+        totalCapacity: currentCapacity,
+        totalVolume,
+        utilizedPercentage: utilizedCapacity
+      },
+      contribution: scoreCapacidade * effectiveWeights.capacidade,
+      formula: "Índice = (Volume Total Entrante / Capacidade Total Mapeada) * 100. Interpolação Linear Invertida (<= 100% = Nota 100, >= 130% = Nota 0).",
+    },
+    produtividade: {
+      score: scoreProdutiv,
+      effectiveWeight: effectiveWeights.produtividade,
+      raw: {
+        closedTickets: rawClosedCount,
+        techCount,
+        avgPerTech: rawProdTickets,
+        targetPerTech: config.targetProdPerTech,
+      },
+      contribution: scoreProdutiv * effectiveWeights.produtividade,
+      formula: "score = (Fechados Por Analista / Alvo Por Analista) * 100. Exige média superando o teto para cravar 100.",
+    }
+  };
+
+  // Identify offender (the active pillar with the lowest normalized score)
+  let offender = '';
+  let lowestScore = 101;
+  for (const [key, data] of Object.entries(pillars)) {
+    if (key === 'sla' && !config.useSLA) continue;
+    if (data.score < lowestScore) {
+      lowestScore = data.score;
+      offender = key;
+    }
+  }
+
+  return {
+    finalScore,
+    month,
+    offender,
+    configUsed: config,
+    pillars
+  };
+}

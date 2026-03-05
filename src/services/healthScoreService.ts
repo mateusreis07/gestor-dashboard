@@ -40,6 +40,11 @@ export const healthScoreService = {
     return res.data;
   },
 
+  getDetails: async (teamId: string, month: string) => {
+    const res = await api.get(`teams/${teamId}/health-score/details?month=${month}`);
+    return res.data;
+  },
+
   recalculateScore: async (teamId: string, month: string) => {
     const res = await api.post(`teams/${teamId}/health-score/recalculate`, { month });
     return res.data;
