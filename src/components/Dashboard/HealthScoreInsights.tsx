@@ -154,8 +154,9 @@ export const HealthScoreInsights: React.FC<HealthScoreInsightsProps> = ({ teamId
               </button>
             </div>
 
-            <div style={{ padding: '32px 24px' }}>
+            <div style={{ padding: '32px 24px', overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
 
+              {/* Score Summary */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '24px' }}>
                 <div style={{ textAlign: 'center', flex: 1 }}>
                   <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Nota Gerada</div>
@@ -172,43 +173,88 @@ export const HealthScoreInsights: React.FC<HealthScoreInsightsProps> = ({ teamId
                 </div>
               </div>
 
-              <div style={{ background: '#f8fafc', borderRadius: '16px', padding: '24px' }}>
-                <h4 style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#334155', textTransform: 'uppercase', letterSpacing: '1px' }}>Memória Qualitativa de Variáveis</h4>
+              {/* Variables Grid */}
+              <div style={{ background: '#f8fafc', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#334155', textTransform: 'uppercase', letterSpacing: '1px' }}>Variáveis do Cálculo</h4>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {Object.entries(pillars[selectedPillar].raw).map(([k, v]: [string, any]) => {
                     const labelMap: Record<string, string> = {
-                      value: 'Valor Real Medido',
+                      value: 'Valor Real Medido (horas)',
                       target: 'Meta Ideal',
                       critical: 'Limite Crítico',
                       validTickets: 'Tickets Contabilizados',
+                      totalImported: 'Total Importados no Mês',
                       techCount: 'Analistas Detectados',
-                      baseCapacity: 'Capacidade Base (Por Analista)',
+                      baseCapacity: 'Capacidade por Analista',
                       totalCapacity: 'Capacidade Total da Equipe',
                       totalVolume: 'Volume Total Entrante',
-                      utilizedPercentage: 'Carga Utilizada (%)',
-                      closedTickets: 'Chamados Fixados/Resolvidos',
-                      avgPerTech: 'Média de Resolução por Analista',
-                      targetPerTech: 'Meta de Resolução (Por Analista)'
+                      utilizedPercentage: 'Índice de Carga (%)',
+                      closedTickets: 'Chamados Resolvidos',
+                      avgPerTech: 'Média por Analista',
+                      targetPerTech: 'Meta por Analista',
                     };
                     const label = labelMap[k] || k;
+                    const suffix = k === 'value' && selectedPillar === 'tma' ? 'h' : k === 'utilizedPercentage' ? '%' : '';
                     return (
                       <div key={k} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>{label}</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
-                          {typeof v === 'number' ? (v % 1 !== 0 ? v.toFixed(2) : v) : v}
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+                        <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
+                          {typeof v === 'number' ? (v % 1 !== 0 ? v.toFixed(2) : v) : v}{suffix}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-
-                <div style={{ background: '#e0f2fe', border: '1px solid #bae6fd', padding: '16px', borderRadius: '12px', color: '#0369a1', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                  <strong>Regra de Negócio Algorítmica:</strong><br />
-                  {pillars[selectedPillar].formula}
-                </div>
-
               </div>
+
+              {/* Step-by-Step Calculation */}
+              {pillars[selectedPillar].calculationSteps && pillars[selectedPillar].calculationSteps.length > 0 && (
+                <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+                  <h4 style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#92400e', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    📐 Passo a Passo do Cálculo
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {pillars[selectedPillar].calculationSteps.map((step: string, i: number) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: '10px',
+                        padding: '8px 12px', background: '#fffbeb', borderRadius: '8px',
+                        fontSize: '0.85rem', color: '#78350f', lineHeight: '1.4',
+                        borderLeft: i === pillars[selectedPillar].calculationSteps.length - 1 ? '3px solid #f59e0b' : '3px solid transparent'
+                      }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 700, minWidth: '20px' }}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Formula Box */}
+              <div style={{ background: '#e0f2fe', border: '1px solid #bae6fd', padding: '16px', borderRadius: '12px', color: '#0369a1', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '24px' }}>
+                <strong>📌 Fórmula Aplicada:</strong><br />
+                {pillars[selectedPillar].formula}<br />
+                <span style={{ fontSize: '0.75rem', color: '#0284c7' }}>Nota limitada entre 0 (pior cenário) e 100 (melhor cenário).</span>
+              </div>
+
+              {/* Contextual Notes */}
+              {pillars[selectedPillar].notes && pillars[selectedPillar].notes.length > 0 && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '24px' }}>
+                  <h4 style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    💡 Informações Importantes
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {pillars[selectedPillar].notes.map((note: string, i: number) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: '10px',
+                        fontSize: '0.85rem', color: '#15803d', lineHeight: '1.5'
+                      }}>
+                        <span style={{ minWidth: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', marginTop: '7px', flexShrink: 0 }}></span>
+                        <span>{note}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>
