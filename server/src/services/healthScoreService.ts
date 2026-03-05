@@ -72,11 +72,45 @@ function normalizeScore(val: number, target: number, critical: number, inverse: 
   return Math.max(0, Math.min(100, Math.round(score * 10) / 10));
 }
 
-// Helper to parse dates stored as strings in our database
+// Helper to parse dates stored as strings in our database (GLPI often exports DD/MM/YYYY HH:mm)
 function parseDateStrings(d1: string, d2?: string | null): number {
   if (!d1 || !d2) return 0;
-  const t1 = new Date(d1).getTime();
-  const t2 = new Date(d2).getTime();
+
+  const parseSingleDate = (dateStr: string): number => {
+    // 1. Check if ISO or standard YYYY-MM-DD
+    if (dateStr.includes('T') || (dateStr.includes('-') && dateStr.split(' ')[0].split('-')[0].length === 4)) {
+      return new Date(dateStr).getTime();
+    }
+
+    // 2. Parse pt-BR formats (DD/MM/YYYY HH:mm:ss or similar)
+    const parts = dateStr.split(/[-/ ]/);
+    if (parts.length >= 3 && parts[0].length <= 2) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+      const year = parseInt(parts[2], 10);
+
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+        let hours = 0, minutes = 0, seconds = 0;
+        if (dateStr.includes(':')) {
+          const timePart = dateStr.split(' ')[1];
+          if (timePart) {
+            const timeTokens = timePart.split(':');
+            hours = parseInt(timeTokens[0], 10) || 0;
+            minutes = parseInt(timeTokens[1], 10) || 0;
+            seconds = parseInt(timeTokens[2], 10) || 0;
+          }
+        }
+        return new Date(year, month, day, hours, minutes, seconds).getTime();
+      }
+    }
+
+    // 3. Fallback
+    return new Date(dateStr).getTime();
+  };
+
+  const t1 = parseSingleDate(d1);
+  const t2 = parseSingleDate(d2);
+
   if (isNaN(t1) || isNaN(t2)) return 0;
   return Math.abs(t2 - t1) / (1000 * 60 * 60); // Difference in hours
 }
