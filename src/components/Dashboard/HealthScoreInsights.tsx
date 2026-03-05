@@ -176,14 +176,31 @@ export const HealthScoreInsights: React.FC<HealthScoreInsightsProps> = ({ teamId
                 <h4 style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#334155', textTransform: 'uppercase', letterSpacing: '1px' }}>Memória Qualitativa de Variáveis</h4>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                  {Object.entries(pillars[selectedPillar].raw).map(([k, v]: [string, any]) => (
-                    <div key={k} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>{k}</div>
-                      <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
-                        {typeof v === 'number' ? (v % 1 !== 0 ? v.toFixed(2) : v) : v}
+                  {Object.entries(pillars[selectedPillar].raw).map(([k, v]: [string, any]) => {
+                    const labelMap: Record<string, string> = {
+                      value: 'Valor Real Medido',
+                      target: 'Meta Ideal',
+                      critical: 'Limite Crítico',
+                      validTickets: 'Tickets Contabilizados',
+                      techCount: 'Analistas Detectados',
+                      baseCapacity: 'Capacidade Base (Por Analista)',
+                      totalCapacity: 'Capacidade Total da Equipe',
+                      totalVolume: 'Volume Total Entrante',
+                      utilizedPercentage: 'Carga Utilizada (%)',
+                      closedTickets: 'Chamados Fixados/Resolvidos',
+                      avgPerTech: 'Média de Resolução por Analista',
+                      targetPerTech: 'Meta de Resolução (Por Analista)'
+                    };
+                    const label = labelMap[k] || k;
+                    return (
+                      <div key={k} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>{label}</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+                          {typeof v === 'number' ? (v % 1 !== 0 ? v.toFixed(2) : v) : v}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div style={{ background: '#e0f2fe', border: '1px solid #bae6fd', padding: '16px', borderRadius: '12px', color: '#0369a1', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: '1.5' }}>
