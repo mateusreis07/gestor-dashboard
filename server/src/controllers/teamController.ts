@@ -242,22 +242,41 @@ export const uploadData = async (req: Request, res: Response) => {
         await prisma.ticket.deleteMany({ where: { userId: teamId } });
       }
 
-      const ticketsToCreate = data.map((t: any) => ({
-        userId: teamId,
-        originalId: String(t['ID'] || t['id'] || t['originalId'] || ''),
-        titulo: String(t['Título'] || t['titulo'] || 'Sem Título'),
-        status: String(t['Status'] || t['status'] || 'Desconhecido'),
-        dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || ''), month) || '',
-        ultimaAtualizacao: formatDateToISO(String(t['Última atualização'] || t['ultimaAtualizacao'] || ''), month, true),
-        requerente: String(t['Requerente - Requerente'] || t['requerente'] || ''),
-        tecnico: String(t['Atribuído - Técnico'] || t['tecnico'] || ''),
-        categoria: String(t['Categoria'] || t['categoria'] || ''),
-        origem: String(t['Origem da requisição'] || t['origem'] || ''),
-        localizacao: String(t['Localização'] || t['localizacao'] || '')
-      }));
+      // DEBUG: Log raw keys from the first row to diagnose column name matching
+      if (data.length > 0) {
+        const sampleRow = data[0];
+        console.log('[Upload DEBUG] Raw CSV keys:', Object.keys(sampleRow));
+        console.log('[Upload DEBUG] Última atualização value:', sampleRow['Última atualização']);
+        console.log('[Upload DEBUG] ultimaAtualizacao value:', sampleRow['ultimaAtualizacao']);
+        // Try all possible key variations
+        const allKeys = Object.keys(sampleRow);
+        const ultimaKey = allKeys.find(k => k.toLowerCase().includes('ltima') || k.toLowerCase().includes('atualiza'));
+        console.log('[Upload DEBUG] Fuzzy matched key:', ultimaKey, '→ value:', ultimaKey ? sampleRow[ultimaKey] : 'NOT FOUND');
+      }
+
+      const ticketsToCreate = data.map((t: any) => {
+        // Fuzzy find the "Última atualização" key (handles encoding variations)
+        const tKeys = Object.keys(t);
+        const ultimaKey = tKeys.find(k => k.toLowerCase().includes('ltima') && k.toLowerCase().includes('atualiza'));
+        const ultimaRaw = t['Última atualização'] || t['ultimaAtualizacao'] || (ultimaKey ? t[ultimaKey] : '') || '';
+
+        return {
+          userId: teamId,
+          originalId: String(t['ID'] || t['id'] || t['originalId'] || ''),
+          titulo: String(t['Título'] || t['titulo'] || 'Sem Título'),
+          status: String(t['Status'] || t['status'] || 'Desconhecido'),
+          dataAbertura: formatDateToISO(String(t['Data de abertura'] || t['dataAbertura'] || ''), month) || '',
+          ultimaAtualizacao: formatDateToISO(String(ultimaRaw), month, true),
+          requerente: String(t['Requerente - Requerente'] || t['requerente'] || ''),
+          tecnico: String(t['Atribuído - Técnico'] || t['tecnico'] || ''),
+          categoria: String(t['Categoria'] || t['categoria'] || ''),
+          origem: String(t['Origem da requisição'] || t['origem'] || ''),
+          localizacao: String(t['Localização'] || t['localizacao'] || '')
+        };
+      });
 
       if (ticketsToCreate.length > 0) {
-        console.log('Sample processed ticket:', ticketsToCreate[0]);
+        console.log('[Upload DEBUG] Sample processed ticket:', JSON.stringify(ticketsToCreate[0], null, 2));
       }
 
       const result = await prisma.ticket.createMany({ data: ticketsToCreate });

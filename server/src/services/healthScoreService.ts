@@ -138,12 +138,15 @@ export async function calculateAndSaveHealthScore(userId: string, month: string)
 
   // 2. Compute Aggregates
   const closedStatuses = ['resolvido', 'fechado', 'concluído', 'concluido'];
+  const tmaValidOrigins = ['helpdesk', 'formcreator'];
 
-  // TMA (Tempo Médio de Atendimento) Focuses on GLPI tickets for now
+  // TMA (Tempo Médio de Atendimento) - Only Helpdesk & Formcreator origins (real user tickets)
   let totalHours = 0;
   let validTMACount = 0;
 
   tickets.forEach(t => {
+    const origem = (t.origem || '').trim().toLowerCase();
+    if (!tmaValidOrigins.includes(origem)) return;
     if (t.ultimaAtualizacao && t.dataAbertura) {
       const hours = parseDateStrings(t.dataAbertura, t.ultimaAtualizacao);
       if (hours > 0) {
@@ -308,6 +311,7 @@ export async function getHealthScoreDetails(userId: string, month: string) {
 
   // 2. Compute Aggregates
   const closedStatuses = ['resolvido', 'fechado', 'concluído', 'concluido'];
+  const tmaValidOrigins = ['helpdesk', 'formcreator'];
   let totalHours = 0;
   let validTMACount = 0;
   let rawBacklogCount = 0;
@@ -316,7 +320,9 @@ export async function getHealthScoreDetails(userId: string, month: string) {
 
   tickets.forEach(t => {
     const isClosed = closedStatuses.includes(t.status.trim().toLowerCase());
-    if (t.ultimaAtualizacao && t.dataAbertura) {
+    // TMA: only Helpdesk & Formcreator origins (real user tickets)
+    const origem = (t.origem || '').trim().toLowerCase();
+    if (tmaValidOrigins.includes(origem) && t.ultimaAtualizacao && t.dataAbertura) {
       const hours = parseDateStrings(t.dataAbertura, t.ultimaAtualizacao);
       if (hours > 0) { totalHours += hours; validTMACount++; }
     }
