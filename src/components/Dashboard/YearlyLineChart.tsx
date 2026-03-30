@@ -5,16 +5,14 @@ interface YearlyLineChartProps {
     data: { name: string; value: number }[];
     title: string;
     color: string;
+    isExporting?: boolean;
 }
 
 const formatValue = (val: number) => {
     return new Intl.NumberFormat('pt-BR').format(val);
 };
 
-export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, color }) => {
-    // Configuração para exibir o título da forma solicitada (azul, grande, centralizado)
-    // Mas como a cor pode variar, vamos usar a cor props ou um azul padrão se não passada
-
+export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, color, isExporting }) => {
     // Renderizar tooltip customizado
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -51,7 +49,7 @@ export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, c
             marginBottom: '32px',
             display: 'flex',
             flexDirection: 'column',
-            height: '350px'
+            height: '300px'
         }}>
             <h2 style={{
                 textAlign: 'center',
@@ -86,12 +84,13 @@ export const YearlyLineChart: React.FC<YearlyLineChartProps> = ({ data, title, c
                         <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }} />
 
                         <Line
-                            type="linear" // As por default tendem a ser linear ou monotone
+                            type="linear" 
                             dataKey="value"
                             stroke={color || '#4f46e5'}
                             strokeWidth={3}
                             dot={{ r: 5, strokeWidth: 2, fill: color, stroke: 'white' }}
                             activeDot={{ r: 7, strokeWidth: 0, fill: color }}
+                            isAnimationActive={!isExporting}
                             label={{
                                 position: 'top',
                                 fill: '#475569',

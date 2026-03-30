@@ -643,15 +643,15 @@ export function TeamDashboard() {
                 </header>
 
                 <main id="team-export-area" style={{ marginTop: '0px' }}> {/* Add margin top */}
-                    {/* PDF Header - Visible only during export */}
-                    {isExporting && (
+                    {/* PDF Header - Visible only during export - Moved inside tab sections for Indicadores/Health Score to force single page */}
+                    {isExporting && activeTab === 'geral' && (
                         <div className="pdf-page-section" style={{ padding: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: '16px', background: 'transparent' }}>
                             <div style={currentTeam.avatarUrl ? { width: '48px', height: '48px', borderRadius: '12px', background: `url(${currentTeam.avatarUrl}) center/cover` } : { width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                                 {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
                             </div>
                             <div>
                                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                                    {activeTab === 'geral' ? 'Visão Operacional' : activeTab === 'indicadores' ? 'KPIs e Indicadores' : 'Health Score'} - {currentTeam.name}
+                                    Visão Operacional - {currentTeam.name}
                                 </h1>
                                 <p style={{ fontSize: '1rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
                                     Mês de Referência: {currentViewMonth ? currentViewMonth.split('-').reverse().join('/') : ''}
@@ -1115,9 +1115,27 @@ export function TeamDashboard() {
 
                         </>
                     ) : activeTab === 'indicadores' ? (
-                        <>
+                        <div className="pdf-page-section">
+                            {isExporting && (
+                                <div style={{ padding: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '16px', background: 'transparent' }}>
+                                    <div style={currentTeam.avatarUrl ? { width: '48px', height: '48px', borderRadius: '12px', background: `url(${currentTeam.avatarUrl}) center/cover` } : { width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                        {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
+                                    </div>
+                                    <div>
+                                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                                            KPIs e Indicadores - {currentTeam.name}
+                                        </h1>
+                                    </div>
+                                </div>
+                            )}
                             {/* INDICADORES VIEW */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                            <div style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                marginBottom: isExporting ? '16px' : '24px',
+                                background: '#ffffff', padding: isExporting ? '12px 20px' : '16px 24px',
+                                borderRadius: '16px', border: '1px solid #e2e8f0',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                            }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f0f9ff', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
                                         <BarChart2 size={24} />
@@ -1143,7 +1161,7 @@ export function TeamDashboard() {
                                         </select>
                                     </div>
 
-                                    {role === 'TEAM' && (
+                                    {role === 'TEAM' && !isExporting && (
                                         <button
                                             onClick={() => setIsEditingIndicators(true)}
                                             style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0ea5e9', color: '#ffffff', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
@@ -1156,7 +1174,11 @@ export function TeamDashboard() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '24px' }}>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+                                gap: isExporting ? '16px' : '24px'
+                            }}>
                                 <YearlyLineChart
                                     data={yearlyIndicators.map(indicator => ({
                                         name: indicator.month.split('-')[1],
@@ -1164,6 +1186,7 @@ export function TeamDashboard() {
                                     }))}
                                     title="Evolução de Peticionamento"
                                     color="#5865F2"
+                                    isExporting={isExporting}
                                 />
                                 <YearlyLineChart
                                     data={yearlyIndicators.map(indicator => ({
@@ -1172,6 +1195,7 @@ export function TeamDashboard() {
                                     }))}
                                     title="Novos Extrajudiciais"
                                     color="#5865F2"
+                                    isExporting={isExporting}
                                 />
                                 <YearlyLineChart
                                     data={yearlyIndicators.map(indicator => ({
@@ -1180,6 +1204,7 @@ export function TeamDashboard() {
                                     }))}
                                     title="Documentos Emitidos"
                                     color="#5865F2"
+                                    isExporting={isExporting}
                                 />
                                 <YearlyLineChart
                                     data={yearlyIndicators.map(indicator => ({
@@ -1188,6 +1213,7 @@ export function TeamDashboard() {
                                     }))}
                                     title="Movimentos Taxonômicos"
                                     color="#5865F2"
+                                    isExporting={isExporting}
                                 />
                             </div>
 
@@ -1275,11 +1301,31 @@ export function TeamDashboard() {
                                     </div>
                                 </div>
                             )}
-                        </>
+                        </div>
                     ) : (
-                        <>
+                        <div className="pdf-page-section">
+                            {isExporting && (
+                                <div style={{ padding: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '16px', background: 'transparent' }}>
+                                    <div style={currentTeam.avatarUrl ? { width: '48px', height: '48px', borderRadius: '12px', background: `url(${currentTeam.avatarUrl}) center/cover` } : { width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                        {!currentTeam.avatarUrl && <LayoutDashboard size={24} />}
+                                    </div>
+                                    <div>
+                                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                                            Health Score - {currentTeam.name}
+                                        </h1>
+                                        <p style={{ fontSize: '1rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                                            Mês de Referência: {currentViewMonth ? currentViewMonth.split('-').reverse().join('/') : ''}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                             {/* HEALTH SCORE VIEW */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', background: '#ffffff', padding: '16px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                            <div style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                marginBottom: isExporting ? '16px' : '24px',
+                                background: '#ffffff', padding: isExporting ? '12px 20px' : '16px 24px',
+                                borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                            }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
                                         <HeartPulse size={24} />
@@ -1289,7 +1335,7 @@ export function TeamDashboard() {
                                         <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>Nota de saúde operacional consolidada do time</p>
                                     </div>
                                 </div>
-                                {teamId && (
+                                {teamId && !isExporting && (
                                     <button
                                         onClick={() => navigate(`/app/team/${teamId}/health-config`)}
                                         style={{
@@ -1306,13 +1352,13 @@ export function TeamDashboard() {
 
                             {teamId && currentViewMonth && (
                                 <div>
-                                    <div style={{ maxWidth: '480px' }}>
+                                    <div style={{ maxWidth: '480px', marginBottom: isExporting ? '16px' : '24px' }}>
                                         <HealthScoreGauge teamId={teamId} month={currentViewMonth} />
                                     </div>
                                     <HealthScoreInsights teamId={teamId} month={currentViewMonth} />
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </main>
             </div>
