@@ -36,14 +36,12 @@ export function TeamDashboard() {
 
     // Determine default tab from URL path
     const isIndicadoresPath = location.pathname.includes('/indicadores');
-    const isHealthScorePath = location.pathname.includes('/health-score') && !location.pathname.includes('/health-config');
-    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores' | 'health-score'>(isHealthScorePath ? 'health-score' : isIndicadoresPath ? 'indicadores' : 'geral');
+    // const isHealthScorePath = location.pathname.includes('/health-score') && !location.pathname.includes('/health-config');
+    const [activeTab, setActiveTab] = useState<'geral' | 'indicadores' | 'health-score'>(isIndicadoresPath ? 'indicadores' : 'geral');
 
     // Sync state if URL changes externally
     useEffect(() => {
-        if (location.pathname.includes('/health-score') && !location.pathname.includes('/health-config')) {
-            setActiveTab('health-score');
-        } else if (location.pathname.includes('/indicadores')) {
+        if (location.pathname.includes('/indicadores')) {
             setActiveTab('indicadores');
         } else {
             setActiveTab('geral');
@@ -470,6 +468,7 @@ export function TeamDashboard() {
 
                         {/* Right: Actions */}
                         <div className={styles.headerActions}>
+                            {/* Temporarily hidden - Not fully implemented
                             {teamId && (
                                 <button
                                     onClick={() => { setActiveTab('health-score'); navigate(`/app/team/${teamId}/health-score`); }}
@@ -487,6 +486,7 @@ export function TeamDashboard() {
                                     <span className="desktop-only">Health Score</span>
                                 </button>
                             )}
+                            */}
 
                             {!isExporting && !isLoading && teamId && currentViewMonth && (
                                 <button
@@ -681,12 +681,14 @@ export function TeamDashboard() {
                                 <Building2 size={20} />
                                 Dados Institucionais
                             </button>
+                            {/* Temporarily hidden - Not fully implemented
                             <button
                                 onClick={() => { setActiveTab('health-score'); navigate(teamId ? `/app/team/${teamId}/health-score` : '/app/health-score'); }}
                                 className={`${styles.tabButton} ${activeTab === 'health-score' ? styles.active : ''}`}>
                                 <HeartPulse size={20} />
                                 Health Score
                             </button>
+                            */}
                         </div>
                     )}
 
