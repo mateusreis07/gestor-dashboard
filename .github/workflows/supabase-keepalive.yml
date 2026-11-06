@@ -1,0 +1,20 @@
+name: Supabase keep-alive
+
+# Evita que o projeto Supabase (plano free) seja pausado por inatividade (7 dias).
+# Roda a cada 3 dias e faz uma consulta real no banco.
+on:
+  schedule:
+    - cron: '0 12 */3 * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consultar banco
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          sudo apt-get install -y -qq postgresql-client > /dev/null
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'SELECT count(*) FROM "User";'
