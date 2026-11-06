@@ -8,6 +8,7 @@ import teamsRoutes from './routes/teamsRoutes';
 import corporateRoutes from './routes/corporateRoutes';
 import insightsRoutes from './routes/insightsRoutes';
 import healthScoreRoutes from './routes/healthScoreRoutes';
+import { prisma } from './prisma';
 
 dotenv.config();
 
@@ -31,6 +32,17 @@ app.use('/api/teams', insightsRoutes);
 app.use('/api/teams', healthScoreRoutes);
 app.use('/api/manager/teams', teamsRoutes);
 app.use('/api/corporate', corporateRoutes);
+
+// Keep-alive: chamado por cron externo (cron-job.org) para evitar a pausa do Supabase free tier
+app.get('/api/keepalive', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.set('Cache-Control', 'no-store').json({ ok: true, at: new Date().toISOString() });
+  } catch (err) {
+    console.error('Keep-alive falhou:', err);
+    res.status(500).json({ ok: false });
+  }
+});
 
 app.get('/', (req, res) => {
   res.json({ message: 'Gestor Dashboard API is running. Use /api/auth/login or /api/auth/register.' });
